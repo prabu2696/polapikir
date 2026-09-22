@@ -123,30 +123,34 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 .app-shell{width:min(1120px,calc(100% - 28px));margin:0 auto 74px}
 .view{display:none}
 .view.active{display:block;opacity:1;transform:none}
-@keyframes viewIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.view.view-entering{will-change:opacity,transform}
+@keyframes viewIn{
+  from{opacity:0;transform:translate3d(0,10px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
 @media(prefers-reduced-motion:no-preference){
-  .view.active{animation:viewIn .48s cubic-bezier(.22,1,.36,1)}
+  .view.view-entering{animation:viewIn .38s cubic-bezier(.2,.8,.2,1) both}
 }
 
 .hero{
-  max-width:820px;
-  margin:76px auto 44px;
+  max-width:940px;
+  margin:58px auto 40px;
+  padding-top:8px;
   text-align:center
 }
 .hero-logo-card{
-  width:114px;
-  height:114px;
-  margin:0 auto 25px;
+  width:104px;
+  height:104px;
+  margin:0 auto 22px;
   display:grid;
   place-items:center;
-  border-radius:31px;
-  background:rgba(255,255,255,.88);
+  border-radius:29px;
+  background:rgba(255,255,255,.9);
   border:1px solid var(--line);
   box-shadow:var(--shadow-md);
-  animation:logoFloat 5s ease-in-out infinite
+  transform:translateZ(0)
 }
-.hero-logo{width:88px;height:88px;object-fit:contain;display:block}
-@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.hero-logo{width:80px;height:80px;object-fit:contain;display:block}
 .eyebrow{
   display:inline-flex;
   align-items:center;
@@ -160,20 +164,23 @@ button:focus-visible,input:focus-visible,select:focus-visible{
   letter-spacing:.14em
 }
 .hero h1{
-  margin:17px auto 18px;
-  max-width:780px;
+  margin:16px auto 18px;
+  max-width:900px;
   font-family:"Plus Jakarta Sans",sans-serif;
-  font-size:clamp(42px,7vw,76px);
-  line-height:1.01;
-  letter-spacing:-.055em
+  font-size:clamp(40px,5.4vw,66px);
+  line-height:1.07;
+  letter-spacing:-.045em;
+  text-wrap:balance
 }
-.hero h1 span{color:var(--green)}
+.hero-line{display:block;color:var(--text)}
+.hero-line-accent{color:var(--green)}
 .hero p{
-  max-width:670px;
+  max-width:720px;
   margin:auto;
   color:var(--muted);
-  font-size:clamp(14px,2vw,17px);
-  line-height:1.75
+  font-size:clamp(14px,1.55vw,17px);
+  line-height:1.68;
+  text-wrap:balance
 }
 
 .role-grid{
@@ -198,7 +205,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
   box-shadow:var(--shadow-sm);
   color:var(--text);
   cursor:pointer;
-  transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s,border-color .28s,background .28s
+  transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s cubic-bezier(.2,.8,.2,1),border-color .24s ease,background .24s ease
 }
 .role-card:before{
   content:"";
@@ -209,7 +216,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
   transition:transform .4s ease
 }
 .role-card:hover{
-  transform:translateY(-5px);
+  transform:translate3d(0,-4px,0);
   border-color:rgba(23,107,54,.20);
   box-shadow:var(--shadow-md);
   background:#fff
@@ -606,8 +613,11 @@ footer strong{font-weight:650;color:#666b66}
     align-content:start;
     gap:18px
   }
-  .question-card.mobile-active{display:grid;animation:mobileQuestion .36s cubic-bezier(.22,1,.36,1)}
-  @keyframes mobileQuestion{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+  .question-card.mobile-active{display:grid}
+  @media(prefers-reduced-motion:no-preference){
+    .question-card.mobile-active{animation:mobileQuestion .28s cubic-bezier(.2,.8,.2,1) both}
+  }
+  @keyframes mobileQuestion{from{opacity:0;transform:translate3d(8px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
   .q-number{width:42px;height:42px}
   .q-text{font-size:16px;line-height:1.64}
   .answer-options{display:none}
@@ -641,11 +651,12 @@ footer strong{font-weight:650;color:#666b66}
   .brand-logo{width:30px;height:30px}
   .brand strong{font-size:12px}.brand small{font-size:9px}
   .app-shell{width:calc(100% - 20px)}
-  .hero{margin:38px 2px 30px;text-align:left}
-  .hero-logo-card{width:88px;height:88px;margin:0 0 21px;border-radius:25px}
-  .hero-logo{width:68px;height:68px}
-  .hero h1{font-size:41px;line-height:1.03}
-  .hero p{font-size:13px}
+  .hero{margin:30px 2px 28px;text-align:left;padding-top:4px}
+  .hero-logo-card{width:82px;height:82px;margin:0 0 18px;border-radius:23px}
+  .hero-logo{width:63px;height:63px}
+  .hero h1{font-size:clamp(36px,11vw,44px);line-height:1.08;letter-spacing:-.04em}
+  .hero-line{display:block}
+  .hero p{font-size:13px;line-height:1.65}
   .role-card{padding:19px;gap:13px;border-radius:19px}
   .role-symbol{width:49px;height:49px;border-radius:15px}
   .role-content strong{font-size:20px}

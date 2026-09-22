@@ -161,11 +161,30 @@ function smoothBehavior(){
 }
 
 function showView(id){
-  $(".view").forEach(view => view.classList.remove("active"));
   const target = $(id);
   if(!target) return;
+
+  const current = $(".view.active");
+  if(current === target){
+    window.scrollTo({top:0,behavior:smoothBehavior()});
+    return;
+  }
+
+  $(".view").forEach(view => {
+    view.classList.remove("active","view-entering");
+  });
+
   target.classList.add("active");
-  window.scrollTo({top:0,behavior:smoothBehavior()});
+  window.scrollTo({top:0,behavior:"auto"});
+
+  if(!prefersReducedMotion()){
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        target.classList.add("view-entering");
+        window.setTimeout(() => target.classList.remove("view-entering"),420);
+      });
+    });
+  }
 }
 
 function normalizePersonName(value){
@@ -624,5 +643,16 @@ $("#printPdfBtn").addEventListener("click", () => {
   }catch(error){
     console.error(error);
     toast("Gagal membuka PDF untuk dicetak.");
+  }
+});
+
+
+if("scrollRestoration" in history){
+  history.scrollRestoration = "manual";
+}
+
+window.addEventListener("pageshow",() => {
+  if(!location.hash){
+    window.scrollTo({top:0,left:0,behavior:"auto"});
   }
 });

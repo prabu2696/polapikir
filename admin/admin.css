@@ -13,8 +13,9 @@
 .admin-shell{width:min(1160px,calc(100% - 28px));margin:0 auto 80px}
 .admin-view{display:none}
 .admin-view.active{display:block;opacity:1;transform:none}
+.admin-view.admin-entering{will-change:opacity,transform}
 @media(prefers-reduced-motion:no-preference){
-  .admin-view.active{animation:viewIn .48s cubic-bezier(.22,1,.36,1)}
+  .admin-view.admin-entering{animation:viewIn .38s cubic-bezier(.2,.8,.2,1) both}
 }
 
 .login-wrap{
