@@ -5,56 +5,80 @@ Web asesmen responsif untuk **Guru MI** dan **Murid MI (Fase A–C)**.
 **Develoved by: Prabu26.dev**
 
 ## URL
+
 - Client: `https://prabu2696.github.io/polapikir/`
 - Admin: `https://prabu2696.github.io/polapikir/admin/`
 
-Client tidak menampilkan tautan menuju panel admin. Foto Pengawas Bina hanya muncul setelah login di dashboard.
+Client tidak menampilkan tautan menuju panel admin.
+
+## Desain
+
+Versi terbaru menggunakan antarmuka putih minimalis bergaya iOS:
+- dominan putih/off-white dengan teks gelap berkontras tinggi;
+- aksen hijau dan emas yang mengikuti identitas visual logo;
+- logo Kementerian Agama digunakan pada halaman client;
+- animasi transisi, micro-interaction, dan progress yang halus;
+- responsif untuk smartphone, tablet, laptop, dan desktop;
+- admin login minimalis tanpa foto;
+- foto Pengawas Bina hanya ditampilkan setelah login di dashboard;
+- kolom password admin memiliki tombol mata untuk tampil/sembunyikan password.
 
 ## Instrumen
-- Guru MI: 20 pernyataan; pola scoring asli dipertahankan.
-- Murid kelas 1–2 / Fase A: 10 pernyataan sederhana dan konkret.
-- Murid kelas 3–4 / Fase B: 15 pernyataan situasional dengan refleksi belajar tingkat menengah.
-- Murid kelas 5–6 / Fase C: 20 pernyataan lebih reflektif tentang strategi, umpan balik, tantangan, dan evaluasi diri.
-- Semua hasil ditampilkan pada skala **0–100**.
+
+- **Guru MI:** 20 pernyataan, pola scoring asli dipertahankan.
+- **Fase A / kelas 1–2:** 10 pernyataan sederhana dan konkret.
+- **Fase B / kelas 3–4:** 15 pernyataan situasional dengan refleksi belajar tingkat menengah.
+- **Fase C / kelas 5–6:** 20 pernyataan lebih reflektif tentang strategi, umpan balik, tantangan, dan evaluasi diri.
+- Semua hasil dinormalisasi ke skala **0–100**.
+
+Pada desktop/laptop, pilihan jawaban tampil sebagai radio button. Pada smartphone, satu pertanyaan ditampilkan per langkah dengan dropdown agar tidak perlu zoom.
 
 ## Alur data
-1. Peserta mengisi identitas dan seluruh jawaban.
-2. Saat menekan **Cek Nilai**, nilai langsung dihitung dan tampil di perangkat.
-3. Pada saat yang sama jawaban dikirim ke Supabase.
-4. Supabase menghitung ulang skor di server sehingga nilai dashboard tidak bergantung pada angka dari browser.
-5. Admin login dan melihat data yang dikelompokkan berdasarkan sekolah.
+
+1. Peserta memilih Guru MI atau Murid MI.
+2. Peserta mengisi nama dan sekolah; murid juga memilih kelas.
+3. Sistem menentukan fase murid otomatis dari kelas.
+4. Peserta menjawab seluruh pernyataan.
+5. Saat menekan **Cek Nilai**, hasil langsung dihitung dan tampil di perangkat.
+6. Pada saat yang sama jawaban dikirim ke Supabase.
+7. Supabase menghitung ulang skor di server.
+8. Admin dapat melihat data berdasarkan sekolah, jenis peserta, dan fase.
+
+## Normalisasi data
+
+- Nama peserta disimpan dalam huruf kapital.
+- Nama sekolah dirapikan untuk variasi spasi dan tanda baca.
+- Contoh variasi seperti `RA-Alhidayah` dan `RA Alhidayah` dapat masuk ke nama normalisasi yang sama.
 
 ## Supabase
-Project URL dan publishable key sudah berada di `config.js`.
 
-Agar backend benar-benar aktif:
-1. Jalankan `supabase/schema.sql` sekali di SQL Editor project `fiizlowisexafwolnydh`.
-2. Di Supabase Authentication buat user:
-   - email internal: `zainalarifin@polapikir.local`
-   - password: sesuai password admin yang ditetapkan
-   - tandai/konfirmasi email sebagai terverifikasi.
-3. Login website tetap menggunakan username `zainalarifin`; email internal tidak ditampilkan ke admin.
+Konfigurasi project dan publishable key berada di `config.js`.
 
-**Jangan** memasukkan service-role key ke repository atau browser.
+Agar backend aktif, jalankan `supabase/schema.sql` di SQL Editor project Supabase dan buat akun Authentication admin dengan email internal yang ditetapkan dalam konfigurasi.
 
-## Catatan
-Pertanyaan Murid MI adalah instrumen reflektif pendidikan yang disusun khusus per fase. Ini bukan tes psikologis klinis atau instrumen psikometrik tervalidasi.
+Login antarmuka admin tetap menggunakan username, bukan email internal.
 
+**Jangan memasukkan service-role key ke repository atau browser.**
 
 ## Laporan PDF
 
-Client dan admin dapat menghasilkan laporan PDF A4 langsung di browser.
+Client dan admin dapat menghasilkan laporan PDF A4 langsung dari browser.
 
-Isi laporan:
-- identitas peserta dan sekolah;
-- jenis peserta serta kelas/fase;
-- nilai akhir 0-100 dan kategori;
-- interpretasi hasil;
-- tabel seluruh pernyataan, jawaban, dan skor item;
-- skor mentah serta nilai akhir;
-- tanggal pengisian dan waktu pembuatan laporan;
+Laporan memuat:
+- identitas peserta;
+- sekolah/madrasah;
+- jenis peserta dan kelas/fase;
+- nilai akhir 0–100;
+- kategori dan interpretasi;
+- seluruh pernyataan, jawaban, dan skor item;
+- skor mentah;
+- tanggal pengisian;
 - identitas Pengawas Bina;
-- footer `Develoved by: Prabu26.dev` dan nomor halaman.
+- nomor halaman;
+- footer `Develoved by: Prabu26.dev`.
 
-Client menyediakan tombol **Unduh Laporan PDF** dan **Cetak PDF** setelah nilai tampil.
-Admin menyediakan tombol yang sama pada detail setiap peserta.
+Client memiliki tombol **Unduh PDF** dan **Cetak** setelah hasil keluar. Admin memiliki tombol yang sama di detail peserta.
+
+## Catatan metodologis
+
+Pertanyaan Murid MI merupakan instrumen reflektif pendidikan yang disusun khusus per fase. Instrumen ini bukan tes psikologis klinis atau instrumen psikometrik yang sudah tervalidasi.
