@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Profil Pola Pikir Guru MI dan Murid MI">
+  <title>Profil Pola Pikir MI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="config.js"></script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Profil Pola Pikir">
+      <span class="brand-mark">PP</span>
+      <span>
+        <strong>Profil Pola Pikir</strong>
+        <small>Madrasah Ibtidaiyah</small>
+      </span>
+    </a>
+    <span class="secure-note">Asesmen pendidikan</span>
+  </header>
+
+  <main class="app-shell">
+    <section id="homeView" class="view active">
+      <div class="hero">
+        <span class="eyebrow">ASESMEN POLA PIKIR</span>
+        <h1>Belajar, bertumbuh,<br><span>dan berkembang.</span></h1>
+        <p>Pilih kategori peserta untuk memulai. Guru dan murid menggunakan pertanyaan yang disesuaikan dengan konteks masing-masing.</p>
+      </div>
+
+      <div class="role-grid">
+        <button class="role-card teacher" data-role="teacher">
+          <span class="role-icon" aria-hidden="true">G</span>
+          <span class="role-copy">
+            <small>ASESMEN 20 PERNYATAAN</small>
+            <strong>Guru MI</strong>
+            <span>Profil pola pikir untuk pendidik Madrasah Ibtidaiyah.</span>
+          </span>
+          <span class="role-arrow">→</span>
+        </button>
+
+        <button class="role-card student" data-role="student">
+          <span class="role-icon" aria-hidden="true">M</span>
+          <span class="role-copy">
+            <small>DISESUAIKAN PER FASE</small>
+            <strong>Murid MI</strong>
+            <span>Pertanyaan sesuai kelas dan tahap perkembangan Fase A–C.</span>
+          </span>
+          <span class="role-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="info-strip">
+        <div><strong>Tanpa login peserta</strong><span>Isi data, jawab, dan lihat hasil.</span></div>
+        <div><strong>Responsif</strong><span>Nyaman di HP, tablet, maupun komputer.</span></div>
+        <div><strong>Terorganisasi</strong><span>Nama sekolah dinormalisasi untuk pengelompokan admin.</span></div>
+      </div>
+    </section>
+
+    <section id="identityView" class="view">
+      <div class="panel narrow">
+        <button class="back-link" id="identityBack">← Kembali</button>
+        <div class="section-heading">
+          <span class="eyebrow" id="identityEyebrow">DATA PESERTA</span>
+          <h2 id="identityTitle">Lengkapi data peserta</h2>
+          <p>Data akan digunakan untuk mengelompokkan hasil berdasarkan sekolah.</p>
+        </div>
+
+        <form id="identityForm" novalidate>
+          <label class="field">
+            <span id="nameLabel">Nama</span>
+            <input id="participantName" type="text" autocomplete="name" maxlength="100" placeholder="Ketik nama lengkap" required>
+            <small>Nama akan disimpan dalam format huruf kapital.</small>
+          </label>
+
+          <label class="field">
+            <span>Nama Sekolah / Madrasah</span>
+            <input id="schoolName" type="text" maxlength="150" placeholder="Contoh: MI Al Hidayah" required>
+            <small>Variasi tanda baca dan spasi akan dinormalisasi otomatis.</small>
+          </label>
+
+          <label class="field" id="gradeField" hidden>
+            <span>Kelas</span>
+            <select id="gradeSelect">
+              <option value="">Pilih kelas</option>
+              <option value="1">Kelas 1 — Fase A</option>
+              <option value="2">Kelas 2 — Fase A</option>
+              <option value="3">Kelas 3 — Fase B</option>
+              <option value="4">Kelas 4 — Fase B</option>
+              <option value="5">Kelas 5 — Fase C</option>
+              <option value="6">Kelas 6 — Fase C</option>
+            </select>
+          </label>
+
+          <div class="privacy-note">
+            <strong>Informasi penggunaan data</strong>
+            <p>Nama, sekolah, kelas (untuk murid), jawaban, dan hasil asesmen akan disimpan untuk keperluan evaluasi oleh administrator/pengawas.</p>
+          </div>
+
+          <button class="primary-btn" type="submit">Mulai Asesmen <span>→</span></button>
+        </form>
+      </div>
+    </section>
+
+    <section id="assessmentView" class="view">
+      <div class="assessment-top">
+        <button class="back-link" id="assessmentBack">← Data peserta</button>
+        <div class="participant-pill">
+          <span id="participantBadge">GURU MI</span>
+          <strong id="participantDisplay"></strong>
+          <small id="schoolDisplay"></small>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <div>
+          <span id="progressText">0 dari 20 terjawab</span>
+          <strong id="progressPercent">0%</strong>
+        </div>
+        <div class="progress-track"><span id="progressBar"></span></div>
+      </div>
+
+      <div class="desktop-question-head">
+        <div>No.</div>
+        <div>Pernyataan</div>
+        <div>Jawaban</div>
+      </div>
+
+      <form id="assessmentForm" novalidate>
+        <div id="questionsContainer"></div>
+
+        <div class="mobile-nav" id="mobileNav">
+          <button type="button" class="secondary-btn" id="prevQuestion">← Sebelumnya</button>
+          <span id="mobileCounter">1 / 20</span>
+          <button type="button" class="secondary-btn" id="nextQuestion">Selanjutnya →</button>
+        </div>
+
+        <div class="submit-wrap">
+          <div>
+            <strong>Pastikan semua jawaban sudah terisi.</strong>
+            <span id="submitHint">Hasil akan dihitung setelah seluruh pertanyaan dijawab.</span>
+          </div>
+          <button class="primary-btn" id="submitAssessment" type="submit">Cek Nilai</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="resultView" class="view">
+      <div class="panel result-panel">
+        <div class="result-icon">✓</div>
+        <span class="eyebrow">HASIL ASESMEN</span>
+        <h2 id="resultCategory">Pola Pikir Bertumbuh</h2>
+        <div class="score-ring">
+          <strong id="resultScore">0</strong>
+          <span id="resultMax">/ 60</span>
+        </div>
+        <p id="resultExplanation"></p>
+        <div id="saveStatus" class="save-status"></div>
+
+        <div class="result-meta">
+          <div><span>Nama</span><strong id="resultName"></strong></div>
+          <div><span>Sekolah</span><strong id="resultSchool"></strong></div>
+          <div id="resultPhaseRow" hidden><span>Fase</span><strong id="resultPhase"></strong></div>
+        </div>
+
+        <button class="primary-btn" id="restartBtn">Selesai</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <footer>
+    <span>Profil Pola Pikir MI</span>
+    <strong>Developed by: Prabu26.dev</strong>
+  </footer>
+</body>
+</html>
