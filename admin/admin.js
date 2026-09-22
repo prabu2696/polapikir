@@ -2,10 +2,10 @@ const CFG=window.APP_CONFIG||{};
 const $=s=>document.querySelector(s);
 let sessionToken=null,rows=[];
 
-function adminToast(msg){const e=$("#adminToast");e.textContent=msg;e.classList.add("show");clearTimeout(window.__at);window.__at=setTimeout(()=>e.classList.remove("show"),2200)}
+function adminToast(msg){const e=$("#adminToast");e.textContent=msg;e.classList.add("show");clearTimeout(window.__at);window.__at=setTimeout(()=>e.classList.remove("show"),2400)}
 function switchAdmin(id){document.querySelectorAll(".admin-view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active")}
 function baseUrl(){return (CFG.supabaseUrl||"").replace(/\/$/,"")}
-function configured(){return !!(CFG.supabaseUrl&&CFG.supabaseAnonKey)}
+function configured(){return !!(CFG.supabaseUrl&&CFG.supabaseAnonKey&&CFG.adminUsername&&CFG.adminLoginEmail)}
 
 async function api(path,opts={}){
   const headers={apikey:CFG.supabaseAnonKey,"Content-Type":"application/json",...(opts.headers||{})};
@@ -17,7 +17,7 @@ async function api(path,opts={}){
 }
 
 async function restoreSession(){
-  const saved=localStorage.getItem("pp_admin_session");
+  const saved=sessionStorage.getItem("pp_admin_session");
   if(!saved)return false;
   try{
     const s=JSON.parse(saved);
@@ -28,18 +28,30 @@ async function restoreSession(){
 
 $("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  if(!configured()){adminToast("Backend belum dikonfigurasi.");return}
+  if(!configured()){adminToast("Backend Supabase belum lengkap dikonfigurasi.");return}
+  const username=$("#adminUsername").value.trim().toLowerCase();
+  if(username!==String(CFG.adminUsername).toLowerCase()){
+    adminToast("Username atau password tidak valid.");return;
+  }
   const btn=$("#loginBtn");btn.disabled=true;btn.textContent="Memeriksa...";
   try{
-    const data=await api("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email:$("#adminEmail").value.trim(),password:$("#adminPassword").value})});
+    const data=await api("/auth/v1/token?grant_type=password",{
+      method:"POST",
+      body:JSON.stringify({email:CFG.adminLoginEmail,password:$("#adminPassword").value})
+    });
     sessionToken=data.access_token;
     const expires_at=Math.floor(Date.now()/1000)+(data.expires_in||3600);
-    localStorage.setItem("pp_admin_session",JSON.stringify({access_token:sessionToken,expires_at}));
+    sessionStorage.setItem("pp_admin_session",JSON.stringify({access_token:sessionToken,expires_at}));
+    $("#adminPassword").value="";
     await openDashboard();
-  }catch{adminToast("Email atau password tidak valid.");}
+  }catch{adminToast("Username atau password tidak valid.");}
   finally{btn.disabled=false;btn.textContent="Masuk ke Dashboard"}
 });
-$("#logoutBtn").addEventListener("click",()=>{sessionToken=null;localStorage.removeItem("pp_admin_session");$("#logoutBtn").hidden=true;switchAdmin("#loginView")});
+
+$("#logoutBtn").addEventListener("click",async()=>{
+  try{if(sessionToken)await api("/auth/v1/logout",{method:"POST"})}catch{}
+  sessionToken=null;sessionStorage.removeItem("pp_admin_session");$("#logoutBtn").hidden=true;switchAdmin("#loginView")
+});
 $("#refreshBtn").addEventListener("click",loadRows);
 $("#searchInput").addEventListener("input",render);
 $("#typeFilter").addEventListener("change",render);
@@ -102,7 +114,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":
 (async()=>{
   if(!configured()){
     $("#adminConfigWarning").hidden=false;
-    $("#adminConfigWarning").textContent="Backend Supabase belum dikonfigurasi. Login admin belum aktif.";
+    $("#adminConfigWarning").textContent="URL Supabase sudah dipasang, tetapi Publishable/Anon Key belum tersedia. Login akan aktif setelah key Supabase diisi.";
     return;
   }
   if(await restoreSession())await openDashboard();
