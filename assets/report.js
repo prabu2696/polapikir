@@ -1,12 +1,15 @@
 (function(){
-  const BRAND = {
-    navy:[7,17,31],
-    teal:[13,148,136],
-    blue:[37,99,235],
-    ink:[30,41,59],
-    muted:[100,116,139],
-    line:[226,232,240],
-    soft:[241,245,249]
+  const C = {
+    green:[23,107,54],
+    greenDark:[13,85,40],
+    greenSoft:[234,244,237],
+    gold:[198,154,21],
+    goldSoft:[255,246,217],
+    text:[24,27,24],
+    muted:[108,116,108],
+    line:[224,228,222],
+    soft:[248,249,246],
+    white:[255,255,255]
   };
 
   const teacherScoring = [
@@ -15,6 +18,7 @@
     [0,1,2,3],[0,1,2,3],[3,2,1,0],[0,1,2,3],[3,2,1,0],
     [0,1,2,3],[0,1,2,3],[3,2,1,0],[3,2,1,0],[0,1,2,3]
   ];
+
   const studentScoring = {
     A:[
       [2,1,0],[2,1,0],[2,1,0],[0,1,2],[2,1,0],
@@ -33,7 +37,7 @@
     ]
   };
 
-  const explanations={
+  const explanations = {
     "Pola Pikir Tetap (Fixed Mindset)":"Peserta cenderung memandang kemampuan sebagai sesuatu yang relatif tetap. Hasil ini dapat digunakan sebagai bahan refleksi terhadap respons pada tantangan, usaha, dan kegagalan.",
     "Pola Pikir Tetap Bertumbuh (Fixed-Growth Mindset)":"Terlihat campuran antara keyakinan yang tetap dan keyakinan bahwa kemampuan dapat berkembang melalui pengalaman, latihan, serta usaha.",
     "Pola Pikir Bertumbuh Tetap (Growth-Fixed Mindset)":"Peserta lebih banyak menunjukkan keyakinan bahwa kemampuan dapat berkembang, meskipun pada beberapa situasi masih terdapat kecenderungan yang lebih tetap.",
@@ -44,27 +48,41 @@
     "Pola Pikir Bertumbuh Berkembang Sangat Baik":"Murid sangat konsisten menunjukkan ketekunan, keterbukaan terhadap masukan, keberanian menghadapi tantangan, dan keyakinan bahwa kemampuan dapat berkembang."
   };
 
+  function safe(value,fallback="-"){
+    return value === null || value === undefined || value === "" ? fallback : String(value);
+  }
+
   function itemScore(type,phase,index,answerIndex){
-    const n=Number(answerIndex);
-    if(!Number.isInteger(n)) return "-";
-    const matrix=type==="teacher"?teacherScoring:studentScoring[phase];
-    return matrix?.[index]?.[n] ?? "-";
+    const selected = Number(answerIndex);
+    if(!Number.isInteger(selected)) return "-";
+    const matrix = type === "teacher" ? teacherScoring : studentScoring[phase];
+    return matrix?.[index]?.[selected] ?? "-";
   }
-  function fmtDate(value){
-    const d=value?new Date(value):new Date();
-    if(Number.isNaN(d.getTime())) return "-";
-    return d.toLocaleString("id-ID",{day:"2-digit",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+
+  function formatDate(value){
+    const date = value ? new Date(value) : new Date();
+    if(Number.isNaN(date.getTime())) return "-";
+
+    return date.toLocaleString("id-ID",{
+      day:"2-digit",
+      month:"long",
+      year:"numeric",
+      hour:"2-digit",
+      minute:"2-digit",
+      second:"2-digit"
+    });
   }
-  function safe(v,fallback="-"){ return v===null||v===undefined||v===""?fallback:String(v); }
+
   function normalize(data){
-    const type=data.participantType||data.participant_type;
-    const phase=data.phase||null;
-    const grade=data.grade||null;
-    const answers=Array.isArray(data.answers)?data.answers:[];
+    const participantType = data.participantType || data.participant_type;
+    const phase = data.phase || null;
+    const grade = data.grade || null;
+    const answers = Array.isArray(data.answers) ? data.answers : [];
+
     return {
-      participantType:type,
-      participantName:safe(data.participantName||data.participant_name),
-      school:safe(data.school||data.school_normalized||data.school_raw),
+      participantType,
+      participantName:safe(data.participantName || data.participant_name),
+      school:safe(data.school || data.school_normalized || data.school_raw),
       phase,
       grade,
       answers,
@@ -72,163 +90,293 @@
       rawScore:data.rawScore ?? data.raw_score ?? null,
       rawMaxScore:data.rawMaxScore ?? data.raw_max_score ?? null,
       category:safe(data.category),
-      explanation:data.explanation||explanations[data.category]||"Hasil ini merupakan bahan refleksi pendidikan berdasarkan jawaban peserta.",
-      createdAt:data.createdAt||data.created_at||new Date().toISOString()
+      explanation:data.explanation || explanations[data.category] || "Hasil ini merupakan bahan refleksi pendidikan berdasarkan jawaban peserta.",
+      createdAt:data.createdAt || data.created_at || new Date().toISOString()
     };
   }
-  function participantLabel(d){
-    if(d.participantType==="teacher") return "Guru MI";
-    return d.phase?("Murid MI - Fase "+d.phase):"Murid MI";
+
+  function participantLabel(data){
+    if(data.participantType === "teacher") return "Guru MI";
+    return data.phase ? "Murid MI • Fase " + data.phase : "Murid MI";
   }
-  function filename(d){
-    const clean=safe(d.participantName,"PESERTA").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
-    return "Laporan_Profil_Pola_Pikir_"+clean+".pdf";
+
+  function filename(data){
+    const clean = safe(data.participantName,"PESERTA")
+      .replace(/[^A-Za-z0-9]+/g,"_")
+      .replace(/^_+|_+$/g,"");
+
+    return "Laporan_Profil_Pola_Pikir_" + clean + ".pdf";
   }
-  function assertLib(){
+
+  function assertLibrary(){
     if(!window.jspdf?.jsPDF) throw new Error("Pustaka PDF belum termuat.");
-    const test=new window.jspdf.jsPDF();
-    if(typeof test.autoTable!=="function") throw new Error("Pustaka tabel PDF belum termuat.");
+    const test = new window.jspdf.jsPDF();
+    if(typeof test.autoTable !== "function") throw new Error("Pustaka tabel PDF belum termuat.");
   }
+
   function buildDoc(input){
-    assertLib();
-    const d=normalize(input);
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
-    const width=210, left=15, right=15, contentW=width-left-right;
+    assertLibrary();
+
+    const data = normalize(input);
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
+
+    const pageWidth = 210;
+    const left = 16;
+    const right = 16;
+    const contentWidth = pageWidth - left - right;
 
     doc.setProperties({
-      title:"Laporan Profil Pola Pikir - "+d.participantName,
+      title:"Laporan Profil Pola Pikir - " + data.participantName,
       subject:"Hasil Asesmen Profil Pola Pikir MI",
       author:"Prabu26.dev",
       creator:"Profil Pola Pikir MI"
     });
 
-    doc.setFillColor(...BRAND.navy);doc.rect(0,0,width,32,"F");
-    doc.setFillColor(...BRAND.teal);doc.rect(0,29,width,3,"F");
-    doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(16);
-    doc.text("PROFIL POLA PIKIR MI",left,13);
-    doc.setFont("helvetica","normal");doc.setFontSize(9);
-    doc.text("Laporan Hasil Asesmen",left,20);
-    doc.setFont("helvetica","bold");doc.setFontSize(9);
-    doc.text("NILAI 0 - 100",width-right,13,{align:"right"});
-    doc.setFont("helvetica","normal");doc.setFontSize(7.5);
-    doc.text("Dokumen dibuat otomatis oleh sistem",width-right,20,{align:"right"});
+    doc.setFillColor(...C.white);
+    doc.rect(0,0,pageWidth,297,"F");
 
-    let y=42;
-    doc.setTextColor(...BRAND.ink);doc.setFont("helvetica","bold");doc.setFontSize(13);
+    doc.setFillColor(...C.green);
+    doc.roundedRect(left,14,12,12,3,3,"F");
+
+    doc.setTextColor(...C.white);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(7.5);
+    doc.text("PP",left + 6,21.7,{align:"center"});
+
+    doc.setTextColor(...C.text);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(14);
+    doc.text("Profil Pola Pikir MI",left + 17,19);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...C.muted);
+    doc.text("Laporan Hasil Asesmen",left + 17,24);
+
+    doc.setFillColor(...C.goldSoft);
+    doc.roundedRect(pageWidth - right - 32,14,32,12,3,3,"F");
+    doc.setTextColor(116,88,0);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(7.5);
+    doc.text("NILAI 0–100",pageWidth - right - 16,21.2,{align:"center"});
+
+    doc.setDrawColor(...C.line);
+    doc.line(left,33,pageWidth-right,33);
+
+    let y = 43;
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(...C.text);
     doc.text("Identitas Peserta",left,y);
-    y+=6;
 
-    const meta=[
-      ["Nama",d.participantName],
-      ["Sekolah / Madrasah",d.school],
-      ["Jenis Peserta",participantLabel(d)],
-      ["Kelas / Fase",d.participantType==="student"?("Kelas "+d.grade+" / Fase "+d.phase):"-"],
-      ["Tanggal Pengisian",fmtDate(d.createdAt)]
+    y += 6;
+
+    const meta = [
+      ["Nama",data.participantName],
+      ["Sekolah / Madrasah",data.school],
+      ["Jenis Peserta",participantLabel(data)],
+      ["Kelas / Fase",data.participantType === "student" ? "Kelas " + data.grade + " / Fase " + data.phase : "-"],
+      ["Tanggal Pengisian",formatDate(data.createdAt)]
     ];
-    meta.forEach(([label,value],i)=>{
-      const yy=y+i*7;
-      doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...BRAND.muted);doc.text(label,left,yy);
-      doc.setFont("helvetica","normal");doc.setTextColor(...BRAND.ink);doc.text(safe(value),55,yy);
+
+    meta.forEach(([label,value],index) => {
+      const rowY = y + index * 6.6;
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(7.2);
+      doc.setTextColor(...C.muted);
+      doc.text(label,left,rowY);
+
+      doc.setFont("helvetica","normal");
+      doc.setTextColor(...C.text);
+      doc.text(safe(value),55,rowY);
     });
-    y+=meta.length*7+5;
 
-    doc.setFillColor(...BRAND.soft);doc.roundedRect(left,y,contentW,30,3,3,"F");
-    doc.setDrawColor(...BRAND.line);doc.roundedRect(left,y,contentW,30,3,3,"S");
-    doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...BRAND.muted);doc.text("NILAI AKHIR",left+6,y+8);
-    doc.setFontSize(22);doc.setTextColor(...BRAND.teal);doc.text(String(Math.round(d.score)),left+6,y+21);
-    doc.setFontSize(9);doc.setTextColor(...BRAND.muted);doc.text("/ 100",left+22,y+21);
+    y += meta.length * 6.6 + 6;
 
-    doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(...BRAND.ink);
-    const catLines=doc.splitTextToSize(d.category,118);
-    doc.text(catLines,left+48,y+9);
-    const catBottom=y+9+(catLines.length-1)*4.5;
-    doc.setFont("helvetica","normal");doc.setFontSize(7.8);doc.setTextColor(...BRAND.muted);
-    const explanation=doc.splitTextToSize(d.explanation,122);
-    doc.text(explanation,left+48,catBottom+6);
-    y+=37;
+    doc.setFillColor(...C.soft);
+    doc.setDrawColor(...C.line);
+    doc.roundedRect(left,y,contentWidth,32,4,4,"FD");
 
-    doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(...BRAND.ink);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(7.2);
+    doc.setTextColor(...C.muted);
+    doc.text("NILAI AKHIR",left + 7,y + 8);
+
+    doc.setFontSize(25);
+    doc.setTextColor(...C.green);
+    doc.text(String(Math.round(data.score)),left + 7,y + 23);
+
+    doc.setFontSize(8);
+    doc.setTextColor(...C.muted);
+    doc.text("/ 100",left + 27,y + 23);
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(...C.text);
+
+    const categoryLines = doc.splitTextToSize(data.category,118);
+    doc.text(categoryLines,left + 51,y + 9);
+
+    const categoryBottom = y + 9 + (categoryLines.length - 1) * 4.3;
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(7.2);
+    doc.setTextColor(...C.muted);
+
+    const explanationLines = doc.splitTextToSize(data.explanation,121);
+    doc.text(explanationLines,left + 51,categoryBottom + 5.5);
+
+    y += 40;
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(...C.text);
     doc.text("Rangkuman Jawaban",left,y);
-    y+=4;
 
-    const body=d.answers.map((a,i)=>[
-      String(a.number ?? i+1),
-      safe(a.question),
-      safe(a.answerLabel),
-      String(itemScore(d.participantType,d.phase,i,a.answerIndex))
+    y += 4;
+
+    const body = data.answers.map((answer,index) => [
+      String(answer.number ?? index + 1),
+      safe(answer.question),
+      safe(answer.answerLabel),
+      String(itemScore(data.participantType,data.phase,index,answer.answerIndex))
     ]);
 
     doc.autoTable({
       startY:y,
       head:[["No.","Pernyataan","Jawaban","Skor Item"]],
       body,
-      margin:{left,right,top:20,bottom:19},
+      margin:{left,right,top:18,bottom:18},
       theme:"grid",
       styles:{
-        font:"helvetica",fontSize:7.4,textColor:BRAND.ink,
-        lineColor:BRAND.line,lineWidth:.2,cellPadding:2.3,valign:"middle",overflow:"linebreak"
+        font:"helvetica",
+        fontSize:7.2,
+        textColor:C.text,
+        lineColor:C.line,
+        lineWidth:.18,
+        cellPadding:2.25,
+        valign:"middle",
+        overflow:"linebreak"
       },
-      headStyles:{fillColor:BRAND.navy,textColor:[255,255,255],fontStyle:"bold",fontSize:7.5},
-      alternateRowStyles:{fillColor:[248,250,252]},
+      headStyles:{
+        fillColor:C.green,
+        textColor:C.white,
+        fontStyle:"bold",
+        fontSize:7.2
+      },
+      alternateRowStyles:{fillColor:C.soft},
       columnStyles:{
         0:{cellWidth:10,halign:"center"},
-        1:{cellWidth:103},
+        1:{cellWidth:101},
         2:{cellWidth:45},
         3:{cellWidth:22,halign:"center"}
       }
     });
 
-    y=doc.lastAutoTable.finalY+8;
-    if(y>246){doc.addPage();y=25;}
+    y = doc.lastAutoTable.finalY + 8;
 
-    doc.setFillColor(248,250,252);doc.roundedRect(left,y,contentW,31,3,3,"F");
-    doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(...BRAND.ink);
-    doc.text("Ringkasan Penilaian",left+5,y+7);
-    doc.setFont("helvetica","normal");doc.setFontSize(7.4);doc.setTextColor(...BRAND.muted);
-    const raw=(d.rawScore!==null&&d.rawMaxScore!==null) ? ("Skor mentah: "+d.rawScore+" / "+d.rawMaxScore+" | ") : "";
-    doc.text(raw+"Nilai akhir: "+Math.round(d.score)+" / 100",left+5,y+14);
-    const note=d.participantType==="student"
-      ?"Catatan: instrumen murid merupakan asesmen reflektif pendidikan yang disesuaikan dengan fase belajar."
-      :"Catatan: hasil digunakan sebagai bahan refleksi pendidikan dan pengembangan praktik belajar.";
-    doc.text(doc.splitTextToSize(note,contentW-10),left+5,y+21);
-
-    y+=39;
-    doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(...BRAND.ink);
-    doc.text("Pengawas Bina",left,y);
-    doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("Zainal Arifin, S.Ag., M.M",left,y+5);
-    doc.setFontSize(7);doc.setTextColor(...BRAND.muted);doc.text("RA dan MI",left,y+10);
-    doc.text("Laporan dibuat: "+fmtDate(new Date()),width-right,y+5,{align:"right"});
-
-    const pageCount=doc.internal.getNumberOfPages();
-    for(let page=1;page<=pageCount;page++){
-      doc.setPage(page);
-      if(page>1){
-        doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(...BRAND.muted);
-        doc.text("PROFIL POLA PIKIR MI - RANGKUMAN HASIL",left,10);
-        doc.setDrawColor(...BRAND.line);doc.line(left,13,width-right,13);
-      }
-      doc.setDrawColor(...BRAND.line);doc.line(left,286,width-right,286);
-      doc.setFont("helvetica","normal");doc.setFontSize(6.8);doc.setTextColor(...BRAND.muted);
-      doc.text("Develoved by: Prabu26.dev",left,291);
-      doc.text("Halaman "+page+" / "+pageCount,width-right,291,{align:"right"});
+    if(y > 245){
+      doc.addPage();
+      y = 25;
     }
 
-    return {doc,data:d};
-  }
-  function download(data){
-    const built=buildDoc(data);
-    built.doc.save(filename(built.data));
-  }
-  function print(data){
-    const built=buildDoc(data);
-    if(typeof built.doc.autoPrint==="function") built.doc.autoPrint({variant:"non-conform"});
-    const url=built.doc.output("bloburl");
-    window.open(url,"_blank","noopener,noreferrer");
-  }
-  function fromSubmission(r){
-    return normalize(r);
+    doc.setFillColor(...C.greenSoft);
+    doc.setDrawColor(215,229,218);
+    doc.roundedRect(left,y,contentWidth,31,4,4,"FD");
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(8.3);
+    doc.setTextColor(...C.greenDark);
+    doc.text("Ringkasan Penilaian",left + 5,y + 7);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(7.2);
+    doc.setTextColor(...C.text);
+
+    const raw = data.rawScore !== null && data.rawMaxScore !== null
+      ? "Skor mentah: " + data.rawScore + " / " + data.rawMaxScore + "  •  "
+      : "";
+
+    doc.text(raw + "Nilai akhir: " + Math.round(data.score) + " / 100",left + 5,y + 14);
+
+    const note = data.participantType === "student"
+      ? "Catatan: instrumen murid merupakan asesmen reflektif pendidikan yang disesuaikan dengan fase belajar."
+      : "Catatan: hasil digunakan sebagai bahan refleksi pendidikan dan pengembangan praktik belajar.";
+
+    doc.setTextColor(...C.muted);
+    doc.text(doc.splitTextToSize(note,contentWidth - 10),left + 5,y + 21);
+
+    y += 40;
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...C.text);
+    doc.text("Pengawas Bina",left,y);
+
+    doc.setFont("helvetica","normal");
+    doc.text("Zainal Arifin, S.Ag., M.M",left,y + 5);
+    doc.setTextColor(...C.muted);
+    doc.setFontSize(6.8);
+    doc.text("RA dan MI",left,y + 10);
+
+    doc.text("Laporan dibuat: " + formatDate(new Date()),pageWidth - right,y + 5,{align:"right"});
+
+    const pages = doc.internal.getNumberOfPages();
+
+    for(let page = 1; page <= pages; page++){
+      doc.setPage(page);
+
+      if(page > 1){
+        doc.setFont("helvetica","bold");
+        doc.setFontSize(6.8);
+        doc.setTextColor(...C.green);
+        doc.text("PROFIL POLA PIKIR MI",left,9);
+
+        doc.setDrawColor(...C.line);
+        doc.line(left,12,pageWidth-right,12);
+      }
+
+      doc.setDrawColor(...C.line);
+      doc.line(left,286,pageWidth-right,286);
+
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(6.5);
+      doc.setTextColor(...C.muted);
+      doc.text("Develoved by: Prabu26.dev",left,291);
+      doc.text("Halaman " + page + " / " + pages,pageWidth-right,291,{align:"right"});
+    }
+
+    return {doc,data};
   }
 
-  window.PolaPikirReport={buildDoc,download,print,fromSubmission,itemScore,normalize};
+  function download(data){
+    const built = buildDoc(data);
+    built.doc.save(filename(built.data));
+  }
+
+  function print(data){
+    const built = buildDoc(data);
+
+    if(typeof built.doc.autoPrint === "function"){
+      built.doc.autoPrint({variant:"non-conform"});
+    }
+
+    const url = built.doc.output("bloburl");
+    window.open(url,"_blank","noopener,noreferrer");
+  }
+
+  function fromSubmission(row){
+    return normalize(row);
+  }
+
+  window.PolaPikirReport = {
+    buildDoc,
+    download,
+    print,
+    fromSubmission,
+    itemScore,
+    normalize
+  };
 })();
