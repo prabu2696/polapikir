@@ -192,6 +192,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 }
 .role-card{
   position:relative;
+  text-decoration:none;
   overflow:hidden;
   display:grid;
   grid-template-columns:auto 1fr auto;

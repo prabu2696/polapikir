@@ -242,13 +242,27 @@ function setupRole(role){
   showView("#identityView");
 }
 
-$$("[data-role]").forEach(button => {
-  button.addEventListener("click", () => setupRole(button.dataset.role));
+$("[data-role]").forEach(button => {
+  button.addEventListener("click", event => {
+    event.preventDefault();
+    setupRole(button.dataset.role);
+  });
 });
 
-$("#identityBack").addEventListener("click", () => showView("#homeView"));
+$("#identityBack").addEventListener("click", event => {
+  if(document.body.dataset.initialRole){
+    return;
+  }
+  event.preventDefault();
+  showView("#homeView");
+});
 $("#assessmentBack").addEventListener("click", () => showView("#identityView"));
 $("#restartBtn").addEventListener("click", () => location.reload());
+
+const initialRole = document.body.dataset.initialRole;
+if(initialRole === "teacher" || initialRole === "student"){
+  setupRole(initialRole);
+}
 
 $("#identityForm").addEventListener("submit", event => {
   event.preventDefault();

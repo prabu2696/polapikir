@@ -12,7 +12,7 @@
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     addEventListener("pageshow", () => scrollTo(0, 0));
   </script>
-  <title>Profil Pola Pikir MI</title>
+  <title>Asesmen Guru MI — Profil Pola Pikir MI</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@
   <script src="assets/app.js?v=20260922.7" defer></script>
 </head>
 
-<body>
+<body data-initial-role="teacher">
   <div class="page-glow glow-a" aria-hidden="true"></div>
   <div class="page-glow glow-b" aria-hidden="true"></div>
 
@@ -49,7 +49,7 @@
   </header>
 
   <main class="app-shell">
-    <section id="homeView" class="view active">
+    <section id="homeView" class="view">
       <div class="hero">
         <div class="hero-logo-card">
           <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Seal_of_the_Ministry_of_Religious_Affairs_of_the_Republic_of_Indonesia.svg" alt="Logo Kementerian Agama" class="hero-logo">
@@ -109,22 +109,22 @@
       </div>
     </section>
 
-    <section id="identityView" class="view">
+    <section id="identityView" class="view active">
       <div class="flow-shell">
-        <button class="back-link" id="identityBack" type="button">
+        <a class="back-link" id="identityBack" href="./">
           <span>‹</span> Kembali
-        </button>
+        </a>
 
         <div class="panel form-panel">
           <div class="section-heading">
-            <span class="eyebrow" id="identityEyebrow">DATA PESERTA</span>
-            <h2 id="identityTitle">Lengkapi data peserta</h2>
+            <span class="eyebrow" id="identityEyebrow">ASESMEN GURU MI</span>
+            <h2 id="identityTitle">Data Guru MI</h2>
             <p>Pastikan nama dan sekolah ditulis dengan benar sebelum memulai asesmen.</p>
           </div>
 
           <form id="identityForm" novalidate>
             <label class="field">
-              <span id="nameLabel">Nama</span>
+              <span id="nameLabel">Nama Guru</span>
               <input id="participantName" type="text" autocomplete="name" maxlength="100" placeholder="Ketik nama lengkap" required>
               <small>Nama akan dirapikan otomatis menjadi huruf kapital.</small>
             </label>
