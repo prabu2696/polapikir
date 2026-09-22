@@ -5,39 +5,37 @@ Web asesmen responsif untuk **Guru MI** dan **Murid MI (Fase A–C)**.
 **Develoved by: Prabu26.dev**
 
 ## URL
-
-Setelah GitHub Pages diaktifkan dari branch `main` / root:
-
 - Client: `https://prabu2696.github.io/polapikir/`
 - Admin: `https://prabu2696.github.io/polapikir/admin/`
 
-Halaman client tidak menampilkan tautan menuju panel admin.
+Client tidak menampilkan tautan menuju panel admin. Foto Pengawas Bina hanya muncul setelah login di dashboard.
 
-## Fitur
+## Instrumen
+- Guru MI: 20 pernyataan; pola scoring asli dipertahankan.
+- Murid kelas 1–2 / Fase A: 10 pernyataan sederhana dan konkret.
+- Murid kelas 3–4 / Fase B: 15 pernyataan situasional dengan refleksi belajar tingkat menengah.
+- Murid kelas 5–6 / Fase C: 20 pernyataan lebih reflektif tentang strategi, umpan balik, tantangan, dan evaluasi diri.
+- Semua hasil ditampilkan pada skala **0–100**.
 
-- Guru MI: 20 pernyataan dan scoring mengikuti versi sumber sebelumnya.
-- Murid MI: bank pertanyaan terpisah untuk Fase A (kelas 1–2), Fase B (kelas 3–4), Fase C (kelas 5–6).
-- Desktop/laptop: pilihan jawaban radio langsung.
-- Smartphone: satu pertanyaan per layar + dropdown.
-- Normalisasi nama peserta menjadi uppercase.
-- Normalisasi sekolah untuk variasi spasi/tanda baca, mis. `RA-Alhidayah` dan `RA Alhidayah`.
-- Dashboard admin berdasarkan sekolah.
-- Login admin via Supabase Auth.
-- Row Level Security: publik hanya INSERT; admin terdaftar dapat SELECT.
+## Alur data
+1. Peserta mengisi identitas dan seluruh jawaban.
+2. Saat menekan **Cek Nilai**, nilai langsung dihitung dan tampil di perangkat.
+3. Pada saat yang sama jawaban dikirim ke Supabase.
+4. Supabase menghitung ulang skor di server sehingga nilai dashboard tidak bergantung pada angka dari browser.
+5. Admin login dan melihat data yang dikelompokkan berdasarkan sekolah.
 
-## Mengaktifkan backend Supabase
+## Supabase
+Project URL dan publishable key sudah berada di `config.js`.
 
-1. Buat project Supabase.
-2. Jalankan seluruh isi `supabase/schema.sql` pada SQL Editor.
-3. Buat satu user admin melalui Authentication.
-4. Ambil UUID user admin, lalu jalankan:
-   `insert into public.admin_users (user_id) values ('UUID-USER-ADMIN');`
-5. Isi `config.js`:
-   - `supabaseUrl`
-   - `supabaseAnonKey`
+Agar backend benar-benar aktif:
+1. Jalankan `supabase/schema.sql` sekali di SQL Editor project `fiizlowisexafwolnydh`.
+2. Di Supabase Authentication buat user:
+   - email internal: `zainalarifin@polapikir.local`
+   - password: sesuai password admin yang ditetapkan
+   - tandai/konfirmasi email sebagai terverifikasi.
+3. Login website tetap menggunakan username `zainalarifin`; email internal tidak ditampilkan ke admin.
 
-Anon key memang boleh berada di frontend Supabase selama RLS aktif. Jangan pernah menaruh `service_role` key di repository/browser.
+**Jangan** memasukkan service-role key ke repository atau browser.
 
-## Catatan metodologis
-
-Bank pertanyaan Murid MI pada aplikasi ini adalah instrumen reflektif yang disusun untuk penggunaan pendidikan berdasarkan kompleksitas bahasa per fase. Ini bukan tes psikologis klinis atau instrumen psikometrik tervalidasi.
+## Catatan
+Pertanyaan Murid MI adalah instrumen reflektif pendidikan yang disusun khusus per fase. Ini bukan tes psikologis klinis atau instrumen psikometrik tervalidasi.
