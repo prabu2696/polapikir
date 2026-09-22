@@ -24,26 +24,49 @@
 
   <main class="admin-shell">
     <section id="loginView" class="admin-view active">
-      <div class="panel admin-login-card">
-        <span class="eyebrow">AKSES TERBATAS</span>
-        <h1>Login Admin</h1>
-        <p>Masuk menggunakan akun administrator yang terdaftar.</p>
-        <form id="loginForm">
-          <label class="field">
-            <span>Email</span>
-            <input id="adminEmail" type="email" autocomplete="username" required placeholder="admin@contoh.id">
-          </label>
-          <label class="field">
-            <span>Password</span>
-            <input id="adminPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
-          </label>
-          <button class="primary-btn" id="loginBtn" type="submit">Masuk ke Dashboard</button>
-        </form>
-        <div class="save-status warn" id="adminConfigWarning" hidden></div>
+      <div class="admin-login-layout">
+        <aside class="supervisor-card">
+          <div class="supervisor-photo-wrap">
+            <img src="pengawas-zainal-arifin.jpg" alt="Pengawas Bina Zainal Arifin, S.Ag., M.M" class="supervisor-photo">
+            <span class="supervisor-badge">PENGAWAS BINA</span>
+          </div>
+          <div class="supervisor-copy">
+            <span class="eyebrow">ADMINISTRATOR ASESMEN</span>
+            <h2>Zainal Arifin, S.Ag., M.M</h2>
+            <p>Pengawas Bina RA dan MI</p>
+          </div>
+        </aside>
+
+        <div class="panel admin-login-card">
+          <span class="eyebrow">AKSES TERBATAS</span>
+          <h1>Login Admin</h1>
+          <p>Masuk menggunakan akun Pengawas Bina untuk membuka dashboard hasil asesmen.</p>
+          <form id="loginForm">
+            <label class="field">
+              <span>Username</span>
+              <input id="adminUsername" type="text" autocomplete="username" required placeholder="Masukkan username" autocapitalize="none" spellcheck="false">
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input id="adminPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
+            </label>
+            <button class="primary-btn" id="loginBtn" type="submit">Masuk ke Dashboard</button>
+          </form>
+          <div class="save-status warn" id="adminConfigWarning" hidden></div>
+        </div>
       </div>
     </section>
 
     <section id="dashboardView" class="admin-view">
+      <div class="dashboard-profile">
+        <img src="pengawas-zainal-arifin.jpg" alt="" aria-hidden="true">
+        <div>
+          <span>Pengawas Bina</span>
+          <strong>Zainal Arifin, S.Ag., M.M</strong>
+          <small>RA dan MI</small>
+        </div>
+      </div>
+
       <div class="admin-heading">
         <div>
           <span class="eyebrow">DASHBOARD PENGAWAS</span>
@@ -86,6 +109,6 @@
   </dialog>
 
   <div class="toast" id="adminToast" role="status"></div>
-  <footer><span>Panel Administrator</span><strong>Develoved by: Prabu26.dev</strong></footer>
+  <footer><span>Panel Administrator • Pengawas Bina</span><strong>Develoved by: Prabu26.dev</strong></footer>
 </body>
 </html>
