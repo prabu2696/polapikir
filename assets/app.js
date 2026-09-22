@@ -32,7 +32,6 @@ const teacherScoring = [
 
 const studentInstruments = {
   A: {
-    title: "Fase A",
     answers: ["Ya", "Kadang-kadang", "Tidak"],
     scoring: [
       [2,1,0],[2,1,0],[2,1,0],[0,1,2],[2,1,0],
@@ -52,7 +51,6 @@ const studentInstruments = {
     ]
   },
   B: {
-    title: "Fase B",
     answers: ["Sangat Sesuai", "Sesuai", "Kurang Sesuai", "Tidak Sesuai"],
     scoring: [
       [3,2,1,0],[3,2,1,0],[3,2,1,0],[0,1,2,3],[3,2,1,0],
@@ -78,7 +76,6 @@ const studentInstruments = {
     ]
   },
   C: {
-    title: "Fase C",
     answers: ["Sangat Sesuai", "Sesuai", "Kurang Sesuai", "Tidak Sesuai"],
     scoring: [
       [3,2,1,0],[3,2,1,0],[3,2,1,0],[3,2,1,0],[3,2,1,0],
@@ -111,164 +108,340 @@ const studentInstruments = {
   }
 };
 
-const teacherAnswers = ["Sangat Setuju","Setuju","Tidak Setuju","Sangat Tidak Setuju"];
+const teacherAnswers = ["Sangat Setuju", "Setuju", "Tidak Setuju", "Sangat Tidak Setuju"];
 
 const teacherCategories = [
-  {min:0,max:20,label:"Pola Pikir Tetap (Fixed Mindset)",explanation:"Anda cenderung memandang kemampuan sebagai sesuatu yang relatif tetap. Hasil ini dapat digunakan sebagai bahan refleksi terhadap respons pada tantangan, usaha, dan kegagalan."},
-  {min:21,max:33,label:"Pola Pikir Tetap Bertumbuh (Fixed-Growth Mindset)",explanation:"Terlihat campuran antara keyakinan yang tetap dan keyakinan bahwa kemampuan dapat berkembang melalui pengalaman, latihan, serta usaha."},
-  {min:34,max:44,label:"Pola Pikir Bertumbuh Tetap (Growth-Fixed Mindset)",explanation:"Anda lebih banyak menunjukkan keyakinan bahwa kemampuan dapat berkembang, meskipun pada beberapa situasi masih terdapat kecenderungan yang lebih tetap."},
-  {min:45,max:60,label:"Pola Pikir Bertumbuh (Growth Mindset)",explanation:"Anda cenderung melihat kemampuan sebagai sesuatu yang dapat dikembangkan melalui latihan, strategi, umpan balik, dan ketekunan."}
+  {
+    min:0,max:20,
+    label:"Pola Pikir Tetap (Fixed Mindset)",
+    explanation:"Anda cenderung memandang kemampuan sebagai sesuatu yang relatif tetap. Hasil ini dapat digunakan sebagai bahan refleksi terhadap respons pada tantangan, usaha, dan kegagalan."
+  },
+  {
+    min:21,max:33,
+    label:"Pola Pikir Tetap Bertumbuh (Fixed-Growth Mindset)",
+    explanation:"Terlihat campuran antara keyakinan yang tetap dan keyakinan bahwa kemampuan dapat berkembang melalui pengalaman, latihan, serta usaha."
+  },
+  {
+    min:34,max:44,
+    label:"Pola Pikir Bertumbuh Tetap (Growth-Fixed Mindset)",
+    explanation:"Anda lebih banyak menunjukkan keyakinan bahwa kemampuan dapat berkembang, meskipun pada beberapa situasi masih terdapat kecenderungan yang lebih tetap."
+  },
+  {
+    min:45,max:60,
+    label:"Pola Pikir Bertumbuh (Growth Mindset)",
+    explanation:"Anda cenderung melihat kemampuan sebagai sesuatu yang dapat dikembangkan melalui latihan, strategi, umpan balik, dan ketekunan."
+  }
 ];
 
 const state = {
-  role:null,name:"",schoolRaw:"",schoolNormalized:"",grade:null,phase:null,
-  questions:[],answers:[],mobileIndex:0,clientSubmissionId:null,lastPayload:null,lastResult:null,reportCreatedAt:null
+  role:null,
+  name:"",
+  schoolRaw:"",
+  schoolNormalized:"",
+  grade:null,
+  phase:null,
+  questions:[],
+  answers:[],
+  mobileIndex:0,
+  clientSubmissionId:null,
+  lastPayload:null,
+  lastResult:null,
+  reportCreatedAt:null
 };
 
-const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
 
 function showView(id){
-  $$(".view").forEach(v=>v.classList.remove("active"));
+  $$(".view").forEach(view => view.classList.remove("active"));
   $(id).classList.add("active");
   window.scrollTo({top:0,behavior:"smooth"});
 }
+
 function normalizePersonName(value){
   return value.normalize("NFKC").trim().replace(/\s+/g," ").toUpperCase();
 }
+
 function normalizeSchool(value){
-  let s=value.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
-  s=s.replace(/[._,/\\-]+/g," ");
-  s=s.replace(/\bMADRASAH IBTIDAIYAH\b/g,"MI");
-  s=s.replace(/\bRAUDHATUL ATHFAL\b/g,"RA");
-  s=s.replace(/\s+/g," ").trim();
-  s=s.replace(/^RA\s+AL\s+/,"RA AL").replace(/^MI\s+AL\s+/,"MI AL");
-  return s;
+  let school = value.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
+  school = school.replace(/[._,/\\-]+/g," ");
+  school = school.replace(/\bMADRASAH IBTIDAIYAH\b/g,"MI");
+  school = school.replace(/\bRAUDHATUL ATHFAL\b/g,"RA");
+  school = school.replace(/\s+/g," ").trim();
+  school = school.replace(/^RA\s+AL\s+/,"RA AL").replace(/^MI\s+AL\s+/,"MI AL");
+  return school;
 }
-function getPhase(grade){ if(grade<=2)return"A"; if(grade<=4)return"B"; return"C"; }
-function toast(msg){
-  const el=$("#toast");el.textContent=msg;el.classList.add("show");
-  clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.classList.remove("show"),2600);
+
+function getPhase(grade){
+  if(grade <= 2) return "A";
+  if(grade <= 4) return "B";
+  return "C";
 }
+
 function makeId(){
-  if(window.crypto?.randomUUID)return crypto.randomUUID();
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==="x"?r:(r&3|8);return v.toString(16)});
+  if(window.crypto?.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, char => {
+    const random = Math.random() * 16 | 0;
+    const value = char === "x" ? random : (random & 3 | 8);
+    return value.toString(16);
+  });
 }
-function configured(){return !!(APP_CONFIG.supabaseUrl&&APP_CONFIG.supabaseAnonKey)}
+
+function configured(){
+  return Boolean(APP_CONFIG.supabaseUrl && APP_CONFIG.supabaseAnonKey);
+}
+
+function toast(message){
+  const element = $("#toast");
+  element.textContent = message;
+  element.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => element.classList.remove("show"), 2600);
+}
 
 function setupRole(role){
-  state.role=role;
-  $("#identityTitle").textContent=role==="teacher"?"Data Guru MI":"Data Murid MI";
-  $("#identityEyebrow").textContent=role==="teacher"?"ASESMEN GURU MI":"ASESMEN MURID MI";
-  $("#nameLabel").textContent=role==="teacher"?"Nama Guru":"Nama Murid";
-  $("#gradeField").hidden=role!=="student";
-  $("#gradeSelect").required=role==="student";
+  state.role = role;
+
+  const student = role === "student";
+  $("#identityTitle").textContent = student ? "Data Murid MI" : "Data Guru MI";
+  $("#identityEyebrow").textContent = student ? "ASESMEN MURID MI" : "ASESMEN GURU MI";
+  $("#nameLabel").textContent = student ? "Nama Murid" : "Nama Guru";
+  $("#gradeField").hidden = !student;
+  $("#gradeSelect").required = student;
+
   showView("#identityView");
 }
-$$("[data-role]").forEach(btn=>btn.addEventListener("click",()=>setupRole(btn.dataset.role)));
-$("#identityBack").addEventListener("click",()=>showView("#homeView"));
-$("#assessmentBack").addEventListener("click",()=>showView("#identityView"));
-$("#restartBtn").addEventListener("click",()=>location.reload());
 
-$("#identityForm").addEventListener("submit",e=>{
-  e.preventDefault();
-  const rawName=$("#participantName").value;
-  const rawSchool=$("#schoolName").value;
-  const grade=Number($("#gradeSelect").value);
-  if(!rawName.trim()||!rawSchool.trim()){toast("Nama dan sekolah wajib diisi.");return}
-  if(state.role==="student"&&!grade){toast("Pilih kelas murid.");return}
-  state.name=normalizePersonName(rawName);
-  state.schoolRaw=rawSchool.trim();
-  state.schoolNormalized=normalizeSchool(rawSchool);
-  state.grade=state.role==="student"?grade:null;
-  state.phase=state.role==="student"?getPhase(grade):null;
-  state.questions=state.role==="teacher"?teacherQuestions:studentInstruments[state.phase].questions;
-  state.answers=Array(state.questions.length).fill(null);
-  state.mobileIndex=0;
-  state.clientSubmissionId=makeId();
-  state.lastPayload=null;
-  state.lastResult=null;
-  state.reportCreatedAt=null;
+$$("[data-role]").forEach(button => {
+  button.addEventListener("click", () => setupRole(button.dataset.role));
+});
+
+$("#identityBack").addEventListener("click", () => showView("#homeView"));
+$("#assessmentBack").addEventListener("click", () => showView("#identityView"));
+$("#restartBtn").addEventListener("click", () => location.reload());
+
+$("#identityForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const rawName = $("#participantName").value;
+  const rawSchool = $("#schoolName").value;
+  const grade = Number($("#gradeSelect").value);
+
+  if(!rawName.trim() || !rawSchool.trim()){
+    toast("Nama dan sekolah wajib diisi.");
+    return;
+  }
+
+  if(state.role === "student" && !grade){
+    toast("Silakan pilih kelas murid.");
+    return;
+  }
+
+  state.name = normalizePersonName(rawName);
+  state.schoolRaw = rawSchool.trim();
+  state.schoolNormalized = normalizeSchool(rawSchool);
+  state.grade = state.role === "student" ? grade : null;
+  state.phase = state.role === "student" ? getPhase(grade) : null;
+  state.questions = state.role === "teacher"
+    ? teacherQuestions
+    : studentInstruments[state.phase].questions;
+  state.answers = Array(state.questions.length).fill(null);
+  state.mobileIndex = 0;
+  state.clientSubmissionId = makeId();
+  state.lastPayload = null;
+  state.lastResult = null;
+  state.reportCreatedAt = null;
+
   renderAssessment();
   showView("#assessmentView");
 });
 
 function getAnswerLabels(){
-  return state.role==="teacher"?teacherAnswers:studentInstruments[state.phase].answers;
+  return state.role === "teacher"
+    ? teacherAnswers
+    : studentInstruments[state.phase].answers;
 }
-function renderAssessment(){
-  $("#participantBadge").textContent=state.role==="teacher"?"GURU MI":`MURID MI • FASE ${state.phase} • ${state.questions.length} SOAL`;
-  $("#participantDisplay").textContent=state.name;
-  $("#schoolDisplay").textContent=state.schoolNormalized;
-  const container=$("#questionsContainer");container.innerHTML="";
-  const labels=getAnswerLabels();
 
-  state.questions.forEach((q,i)=>{
-    const card=document.createElement("div");
-    card.className="question-card"+(i===0?" mobile-active":"");
-    card.dataset.index=i;
-    const options=labels.map((label,j)=>`<label><input type="radio" name="q${i}" value="${j}"><span>${label}</span></label>`).join("");
-    const selectOptions=['<option value="">Pilih jawaban</option>',...labels.map((l,j)=>`<option value="${j}">${l}</option>`)].join("");
-    card.innerHTML=`
-      <div class="q-number">${String(i+1).padStart(2,"0")}</div>
-      <div class="q-text">${q}</div>
-      <div><div class="answer-options ${labels.length===3?"three-options":""}">${options}</div>
-      <select class="mobile-select" aria-label="Jawaban pertanyaan ${i+1}">${selectOptions}</select></div>`;
+function renderAssessment(){
+  const student = state.role === "student";
+  $("#participantBadge").textContent = student
+    ? `MURID MI • FASE ${state.phase} • ${state.questions.length} SOAL`
+    : "GURU MI • 20 SOAL";
+  $("#participantDisplay").textContent = state.name;
+  $("#schoolDisplay").textContent = state.schoolNormalized;
+
+  const container = $("#questionsContainer");
+  const labels = getAnswerLabels();
+  container.innerHTML = "";
+
+  state.questions.forEach((question,index) => {
+    const card = document.createElement("article");
+    card.className = "question-card" + (index === 0 ? " mobile-active" : "");
+    card.dataset.index = index;
+
+    const radioOptions = labels.map((label,answerIndex) => `
+      <label>
+        <input type="radio" name="q${index}" value="${answerIndex}">
+        <span>${label}</span>
+      </label>
+    `).join("");
+
+    const selectOptions = [
+      '<option value="">Pilih jawaban</option>',
+      ...labels.map((label,answerIndex) => `<option value="${answerIndex}">${label}</option>`)
+    ].join("");
+
+    card.innerHTML = `
+      <div class="q-number">${String(index + 1).padStart(2,"0")}</div>
+      <div class="q-text">${question}</div>
+      <div>
+        <div class="answer-options ${labels.length === 3 ? "three-options" : ""}">
+          ${radioOptions}
+        </div>
+        <select class="mobile-select" aria-label="Jawaban pertanyaan ${index + 1}">
+          ${selectOptions}
+        </select>
+      </div>
+    `;
+
     container.appendChild(card);
-    card.querySelectorAll('input[type="radio"]').forEach(input=>input.addEventListener("change",()=>{
-      state.answers[i]=Number(input.value);card.querySelector(".mobile-select").value=input.value;updateProgress();
-    }));
-    const select=card.querySelector(".mobile-select");
-    select.addEventListener("change",()=>{
-      state.answers[i]=select.value===""?null:Number(select.value);
-      card.querySelectorAll('input[type="radio"]').forEach(r=>r.checked=Number(r.value)===state.answers[i]);
+
+    card.querySelectorAll('input[type="radio"]').forEach(input => {
+      input.addEventListener("change", () => {
+        state.answers[index] = Number(input.value);
+        card.querySelector(".mobile-select").value = input.value;
+        updateProgress();
+      });
+    });
+
+    const select = card.querySelector(".mobile-select");
+    select.addEventListener("change", () => {
+      state.answers[index] = select.value === "" ? null : Number(select.value);
+
+      card.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = Number(radio.value) === state.answers[index];
+      });
+
       updateProgress();
-      if(select.value!==""&&i<state.questions.length-1)setTimeout(()=>setMobileQuestion(i+1),180);
+
+      if(select.value !== "" && index < state.questions.length - 1){
+        setTimeout(() => setMobileQuestion(index + 1), 170);
+      }
     });
   });
-  updateProgress();setMobileQuestion(0);
+
+  updateProgress();
+  setMobileQuestion(0);
 }
 
 function updateProgress(){
-  const done=state.answers.filter(v=>v!==null).length,total=state.questions.length,pct=Math.round(done/total*100);
-  $("#progressText").textContent=`${done} dari ${total} terjawab`;
-  $("#progressPercent").textContent=`${pct}%`;
-  $("#progressBar").style.width=`${pct}%`;
-  $("#submitHint").textContent=done===total?"Semua jawaban sudah lengkap.":"Hasil akan dihitung setelah seluruh pertanyaan dijawab.";
+  const answered = state.answers.filter(answer => answer !== null).length;
+  const total = state.questions.length;
+  const percent = Math.round((answered / total) * 100);
+
+  $("#progressText").textContent = `${answered} dari ${total} terjawab`;
+  $("#progressPercent").textContent = `${percent}%`;
+  $("#progressBar").style.width = `${percent}%`;
+  $("#submitHint").textContent = answered === total
+    ? "Semua jawaban sudah lengkap. Anda dapat melihat hasil."
+    : "Hasil akan dihitung setelah seluruh pertanyaan dijawab.";
 }
+
 function setMobileQuestion(index){
-  state.mobileIndex=Math.max(0,Math.min(index,state.questions.length-1));
-  $$(".question-card").forEach((c,i)=>c.classList.toggle("mobile-active",i===state.mobileIndex));
-  $("#mobileCounter").textContent=`${state.mobileIndex+1} / ${state.questions.length}`;
-  $("#prevQuestion").disabled=state.mobileIndex===0;
-  $("#nextQuestion").textContent=state.mobileIndex===state.questions.length-1?"Cek Nilai":"Selanjutnya →";
+  state.mobileIndex = Math.max(0,Math.min(index,state.questions.length - 1));
+
+  $$(".question-card").forEach((card,cardIndex) => {
+    card.classList.toggle("mobile-active",cardIndex === state.mobileIndex);
+  });
+
+  $("#mobileCounter").textContent = `${state.mobileIndex + 1} / ${state.questions.length}`;
+  $("#prevQuestion").disabled = state.mobileIndex === 0;
+  $("#nextQuestion").textContent = state.mobileIndex === state.questions.length - 1
+    ? "Cek Nilai"
+    : "Selanjutnya ›";
+
+  const active = document.querySelector(`.question-card[data-index="${state.mobileIndex}"]`);
+  if(active && window.innerWidth <= 840){
+    active.scrollIntoView({behavior:"smooth",block:"center"});
+  }
 }
-$("#prevQuestion").addEventListener("click",()=>setMobileQuestion(state.mobileIndex-1));
-$("#nextQuestion").addEventListener("click",()=>state.mobileIndex===state.questions.length-1?$("#assessmentForm").requestSubmit():setMobileQuestion(state.mobileIndex+1));
+
+$("#prevQuestion").addEventListener("click", () => setMobileQuestion(state.mobileIndex - 1));
+$("#nextQuestion").addEventListener("click", () => {
+  if(state.mobileIndex === state.questions.length - 1){
+    $("#assessmentForm").requestSubmit();
+  }else{
+    setMobileQuestion(state.mobileIndex + 1);
+  }
+});
 
 function studentCategory(score){
-  if(score<40)return {label:"Perlu Dukungan untuk Bertumbuh",explanation:"Murid masih memerlukan dukungan yang konsisten untuk melihat tantangan, kesalahan, latihan, dan masukan sebagai bagian dari proses belajar."};
-  if(score<70)return {label:"Pola Pikir Bertumbuh Mulai Berkembang",explanation:"Murid sudah menunjukkan beberapa kebiasaan belajar yang mendukung pertumbuhan dan masih dapat diperkuat melalui latihan, strategi, serta umpan balik."};
-  if(score<85)return {label:"Pola Pikir Bertumbuh Berkembang Baik",explanation:"Murid cukup konsisten menunjukkan kemauan mencoba, belajar dari kesalahan, menerima masukan, dan memperbaiki strategi belajar."};
-  return {label:"Pola Pikir Bertumbuh Berkembang Sangat Baik",explanation:"Murid sangat konsisten menunjukkan ketekunan, keterbukaan terhadap masukan, keberanian menghadapi tantangan, dan keyakinan bahwa kemampuan dapat berkembang."};
-}
-function calculateResult(){
-  let raw=0,rawMax=0,category;
-  if(state.role==="teacher"){
-    state.answers.forEach((a,i)=>raw+=teacherScoring[i][a]);rawMax=60;
-    category=teacherCategories.find(c=>raw>=c.min&&raw<=c.max);
-  }else{
-    const inst=studentInstruments[state.phase];
-    state.answers.forEach((a,i)=>raw+=inst.scoring[i][a]);
-    rawMax=inst.scoring.length*(state.phase==="A"?2:3);
+  if(score < 40){
+    return {
+      label:"Perlu Dukungan untuk Bertumbuh",
+      explanation:"Murid masih memerlukan dukungan yang konsisten untuk melihat tantangan, kesalahan, latihan, dan masukan sebagai bagian dari proses belajar."
+    };
   }
-  const score=Math.round(raw*100/rawMax);
-  if(state.role==="student")category=studentCategory(score);
-  return {score,maxScore:100,rawScore:raw,rawMaxScore:rawMax,category:category.label,explanation:category.explanation};
+  if(score < 70){
+    return {
+      label:"Pola Pikir Bertumbuh Mulai Berkembang",
+      explanation:"Murid sudah menunjukkan beberapa kebiasaan belajar yang mendukung pertumbuhan dan masih dapat diperkuat melalui latihan, strategi, serta umpan balik."
+    };
+  }
+  if(score < 85){
+    return {
+      label:"Pola Pikir Bertumbuh Berkembang Baik",
+      explanation:"Murid cukup konsisten menunjukkan kemauan mencoba, belajar dari kesalahan, menerima masukan, dan memperbaiki strategi belajar."
+    };
+  }
+  return {
+    label:"Pola Pikir Bertumbuh Berkembang Sangat Baik",
+    explanation:"Murid sangat konsisten menunjukkan ketekunan, keterbukaan terhadap masukan, keberanian menghadapi tantangan, dan keyakinan bahwa kemampuan dapat berkembang."
+  };
+}
+
+function calculateResult(){
+  let rawScore = 0;
+  let rawMaxScore = 0;
+  let category;
+
+  if(state.role === "teacher"){
+    state.answers.forEach((answer,index) => {
+      rawScore += teacherScoring[index][answer];
+    });
+    rawMaxScore = 60;
+    category = teacherCategories.find(item => rawScore >= item.min && rawScore <= item.max);
+  }else{
+    const instrument = studentInstruments[state.phase];
+
+    state.answers.forEach((answer,index) => {
+      rawScore += instrument.scoring[index][answer];
+    });
+
+    rawMaxScore = state.phase === "A"
+      ? 20
+      : state.phase === "B"
+        ? 45
+        : 60;
+
+    category = studentCategory(Math.round((rawScore * 100) / rawMaxScore));
+  }
+
+  const score = Math.round((rawScore * 100) / rawMaxScore);
+
+  return {
+    score,
+    maxScore:100,
+    rawScore,
+    rawMaxScore,
+    category:category.label,
+    explanation:category.explanation
+  };
 }
 
 function makePayload(){
-  const labels=getAnswerLabels();
+  const labels = getAnswerLabels();
+
   return {
     client_submission_id:state.clientSubmissionId,
     instrument_version:"2026.09-v3",
@@ -278,97 +451,167 @@ function makePayload(){
     school_normalized:state.schoolNormalized,
     grade:state.grade,
     phase:state.phase,
-    answers:state.questions.map((q,i)=>({number:i+1,question:q,answerIndex:state.answers[i],answerLabel:labels[state.answers[i]]}))
+    answers:state.questions.map((question,index) => ({
+      number:index + 1,
+      question,
+      answerIndex:state.answers[index],
+      answerLabel:labels[state.answers[index]]
+    }))
   };
 }
+
 async function saveSubmission(payload){
-  if(!configured())throw new Error("Backend belum dikonfigurasi.");
-  const url=APP_CONFIG.supabaseUrl.replace(/\/$/,"")+"/rest/v1/submissions?on_conflict=client_submission_id";
-  const res=await fetch(url,{
+  if(!configured()) throw new Error("Backend belum dikonfigurasi.");
+
+  const endpoint = APP_CONFIG.supabaseUrl.replace(/\/$/,"")
+    + "/rest/v1/submissions?on_conflict=client_submission_id";
+
+  const response = await fetch(endpoint,{
     method:"POST",
     headers:{
       apikey:APP_CONFIG.supabaseAnonKey,
-      Authorization:"Bearer "+APP_CONFIG.supabaseAnonKey,
+      Authorization:"Bearer " + APP_CONFIG.supabaseAnonKey,
       "Content-Type":"application/json",
       Prefer:"resolution=ignore-duplicates,return=minimal"
     },
     body:JSON.stringify(payload)
   });
-  if(!res.ok){const detail=await res.text().catch(()=>"");throw new Error(detail||"Gagal menyimpan data.")}
-  return true;
-}
-function setSaveState(type,message,retry=false){
-  const el=$("#saveStatus");el.className="save-status "+type;
-  el.innerHTML=retry?`${message} <button type="button" id="retrySaveBtn" class="inline-retry">Coba kirim lagi</button>`:message;
-  if(retry)$("#retrySaveBtn").addEventListener("click",retryLastSave);
-}
-async function sendToAdmin(payload){
-  setSaveState("pending","Mengirim hasil ke dashboard admin...");
-  try{await saveSubmission(payload);setSaveState("ok","✓ Hasil sudah tersimpan dan tersedia di dashboard admin.");}
-  catch(err){setSaveState("warn","⚠ Hasil sudah dihitung di perangkat, tetapi belum berhasil dikirim ke admin.",true);}
-}
-async function retryLastSave(){if(!state.lastPayload)return;await sendToAdmin(state.lastPayload)}
 
-$("#assessmentForm").addEventListener("submit",e=>{
-  e.preventDefault();
-  const missing=state.answers.findIndex(v=>v===null);
-  if(missing!==-1){
-    toast(`Pertanyaan ${missing+1} belum dijawab.`);setMobileQuestion(missing);
-    document.querySelector(`.question-card[data-index="${missing}"]`).scrollIntoView({behavior:"smooth",block:"center"});return;
+  if(!response.ok){
+    const detail = await response.text().catch(() => "");
+    throw new Error(detail || "Gagal menyimpan data.");
   }
-  const result=calculateResult();
-  const payload=makePayload();
-  state.lastPayload=payload;
-  state.lastResult=result;
-  state.reportCreatedAt=new Date().toISOString();
+}
+
+function setSaveState(type,message,retry=false){
+  const element = $("#saveStatus");
+  element.className = "save-status " + type;
+  element.innerHTML = retry
+    ? `${message} <button type="button" id="retrySaveBtn" class="inline-retry">Kirim ulang</button>`
+    : message;
+
+  if(retry){
+    $("#retrySaveBtn").addEventListener("click",retryLastSave);
+  }
+}
+
+async function sendToAdmin(payload){
+  setSaveState("pending","Mengirim hasil ke dashboard admin…");
+
+  try{
+    await saveSubmission(payload);
+    setSaveState("ok","✓ Hasil berhasil disimpan dan tersedia di dashboard admin.");
+  }catch(error){
+    console.error(error);
+    setSaveState(
+      "warn",
+      "Hasil sudah dihitung, tetapi belum berhasil dikirim ke admin.",
+      true
+    );
+  }
+}
+
+async function retryLastSave(){
+  if(state.lastPayload) await sendToAdmin(state.lastPayload);
+}
+
+$("#assessmentForm").addEventListener("submit",event => {
+  event.preventDefault();
+
+  const missingIndex = state.answers.findIndex(answer => answer === null);
+
+  if(missingIndex !== -1){
+    toast(`Pertanyaan ${missingIndex + 1} belum dijawab.`);
+    setMobileQuestion(missingIndex);
+
+    const missingCard = document.querySelector(`.question-card[data-index="${missingIndex}"]`);
+    if(missingCard){
+      missingCard.scrollIntoView({behavior:"smooth",block:"center"});
+    }
+    return;
+  }
+
+  const result = calculateResult();
+  const payload = makePayload();
+
+  state.lastPayload = payload;
+  state.lastResult = result;
+  state.reportCreatedAt = new Date().toISOString();
+
   renderResult(result);
   sendToAdmin(payload);
 });
 
 function renderResult(result){
-  $("#resultCategory").textContent=result.category;
-  $("#resultScore").textContent=result.score;
-  $("#resultMax").textContent="/ 100";
-  $("#resultExplanation").textContent=result.explanation;
-  $("#resultName").textContent=state.name;
-  $("#resultSchool").textContent=state.schoolNormalized;
-  $("#resultPhaseRow").hidden=state.role!=="student";
-  $("#resultPhase").textContent=state.role==="student"?`Fase ${state.phase} • Kelas ${state.grade} • ${state.questions.length} soal`:"";
-  setSaveState("pending","Menyiapkan pengiriman hasil...");
+  $("#resultCategory").textContent = result.category;
+  $("#resultScore").textContent = result.score;
+  $("#resultMax").textContent = "/ 100";
+  $("#resultExplanation").textContent = result.explanation;
+  $("#resultName").textContent = state.name;
+  $("#resultSchool").textContent = state.schoolNormalized;
+
+  const phaseRow = $("#resultPhaseRow");
+  phaseRow.hidden = state.role !== "student";
+  $("#resultPhase").textContent = state.role === "student"
+    ? `Fase ${state.phase} • Kelas ${state.grade} • ${state.questions.length} soal`
+    : "";
+
+  setSaveState("pending","Menyiapkan pengiriman hasil…");
   showView("#resultView");
 }
 
-
 function buildClientReportData(){
   if(!state.lastResult) return null;
-  const labels=getAnswerLabels();
+
+  const labels = getAnswerLabels();
+
   return {
     participantType:state.role,
     participantName:state.name,
     school:state.schoolNormalized,
     grade:state.grade,
     phase:state.phase,
-    answers:state.questions.map((question,i)=>({
-      number:i+1,
+    answers:state.questions.map((question,index) => ({
+      number:index + 1,
       question,
-      answerIndex:state.answers[i],
-      answerLabel:labels[state.answers[i]]
+      answerIndex:state.answers[index],
+      answerLabel:labels[state.answers[index]]
     })),
     score:state.lastResult.score,
     rawScore:state.lastResult.rawScore,
     rawMaxScore:state.lastResult.rawMaxScore,
     category:state.lastResult.category,
     explanation:state.lastResult.explanation,
-    createdAt:state.reportCreatedAt||new Date().toISOString()
+    createdAt:state.reportCreatedAt || new Date().toISOString()
   };
 }
-$("#downloadPdfBtn").addEventListener("click",()=>{
-  const data=buildClientReportData();
-  if(!data){toast("Hasil belum tersedia.");return}
-  try{window.PolaPikirReport.download(data)}catch(err){toast("Gagal membuat PDF. Muat ulang halaman dan coba lagi.")}
+
+$("#downloadPdfBtn").addEventListener("click", () => {
+  const data = buildClientReportData();
+  if(!data){
+    toast("Hasil belum tersedia.");
+    return;
+  }
+
+  try{
+    window.PolaPikirReport.download(data);
+  }catch(error){
+    console.error(error);
+    toast("Gagal membuat PDF. Muat ulang halaman dan coba lagi.");
+  }
 });
-$("#printPdfBtn").addEventListener("click",()=>{
-  const data=buildClientReportData();
-  if(!data){toast("Hasil belum tersedia.");return}
-  try{window.PolaPikirReport.print(data)}catch(err){toast("Gagal membuka PDF untuk dicetak.")}
+
+$("#printPdfBtn").addEventListener("click", () => {
+  const data = buildClientReportData();
+  if(!data){
+    toast("Hasil belum tersedia.");
+    return;
+  }
+
+  try{
+    window.PolaPikirReport.print(data);
+  }catch(error){
+    console.error(error);
+    toast("Gagal membuka PDF untuk dicetak.");
+  }
 });
