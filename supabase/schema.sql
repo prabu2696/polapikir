@@ -35,6 +35,8 @@ create unique index if not exists submissions_client_id_uidx on public.submissio
 create index if not exists submissions_school_idx on public.submissions (school_normalized);
 create index if not exists submissions_type_idx on public.submissions (participant_type);
 create index if not exists submissions_created_idx on public.submissions (created_at desc);
+create index if not exists submissions_school_created_idx on public.submissions (school_normalized, created_at desc);
+create index if not exists submissions_type_phase_created_idx on public.submissions (participant_type, phase, created_at desc);
 
 create or replace function public.normalize_school_name(input text)
 returns text language plpgsql immutable as $$
@@ -130,3 +132,19 @@ create policy "admins can delete submissions" on public.submissions for delete t
 grant usage on schema public to anon, authenticated;
 grant insert on public.submissions to anon, authenticated;
 grant select, delete on public.submissions to authenticated;
+
+
+-- Integrity guards for normalized scoring.
+do $$
+begin
+  alter table public.submissions
+    add constraint submissions_score_range_chk check (score between 0 and 100);
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.submissions
+    add constraint submissions_max_score_chk check (max_score = 100);
+exception when duplicate_object then null;
+end $$;

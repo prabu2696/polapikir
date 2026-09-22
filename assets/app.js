@@ -179,10 +179,8 @@ function showView(id){
 
   if(!prefersReducedMotion()){
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        target.classList.add("view-entering");
-        window.setTimeout(() => target.classList.remove("view-entering"),420);
-      });
+      target.classList.add("view-entering");
+      window.setTimeout(() => target.classList.remove("view-entering"),220);
     });
   }
 }
@@ -412,7 +410,7 @@ function renderAssessment(){
       updateProgress();
 
       if(select.value !== "" && index < state.questions.length - 1){
-        setTimeout(() => setMobileQuestion(index + 1), 170);
+        setTimeout(() => setMobileQuestion(index + 1), 90);
       }
     });
   });
@@ -449,8 +447,13 @@ function setMobileQuestion(index){
     : "Selanjutnya ›";
 
   const active = document.querySelector(`.question-card[data-index="${state.mobileIndex}"]`);
-  if(active && window.innerWidth <= 840){
-    active.scrollIntoView({behavior:smoothBehavior(),block:"center"});
+  if(active && window.innerWidth <= 980){
+    const rect = active.getBoundingClientRect();
+    const topSafe = 168;
+    const bottomSafe = window.innerHeight - 24;
+    if(rect.top < topSafe || rect.bottom > bottomSafe){
+      active.scrollIntoView({behavior:smoothBehavior(),block:"start"});
+    }
   }
 }
 
@@ -552,26 +555,44 @@ function makePayload(){
   };
 }
 
-async function saveSubmission(payload){
+async function saveSubmission(payload,attempt=0){
   if(!configured()) throw new Error("Backend belum dikonfigurasi.");
 
   const endpoint = APP_CONFIG.supabaseUrl.replace(/\/$/,"")
     + "/rest/v1/submissions?on_conflict=client_submission_id";
 
-  const response = await fetch(endpoint,{
-    method:"POST",
-    headers:{
-      apikey:APP_CONFIG.supabaseAnonKey,
-      Authorization:"Bearer " + APP_CONFIG.supabaseAnonKey,
-      "Content-Type":"application/json",
-      Prefer:"resolution=ignore-duplicates,return=minimal"
-    },
-    body:JSON.stringify(payload)
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(),10000);
 
-  if(!response.ok){
-    const detail = await response.text().catch(() => "");
-    throw new Error(detail || "Gagal menyimpan data.");
+  try{
+    const response = await fetch(endpoint,{
+      method:"POST",
+      signal:controller.signal,
+      headers:{
+        apikey:APP_CONFIG.supabaseAnonKey,
+        Authorization:"Bearer " + APP_CONFIG.supabaseAnonKey,
+        "Content-Type":"application/json",
+        Prefer:"resolution=ignore-duplicates,return=minimal"
+      },
+      body:JSON.stringify(payload)
+    });
+
+    if(!response.ok){
+      const detail = await response.text().catch(() => "");
+      if(response.status >= 500 && attempt < 1){
+        await new Promise(resolve => setTimeout(resolve,450));
+        return saveSubmission(payload,attempt + 1);
+      }
+      throw new Error(detail || "Gagal menyimpan data.");
+    }
+  }catch(error){
+    if(attempt < 1 && error?.name !== "AbortError"){
+      await new Promise(resolve => setTimeout(resolve,450));
+      return saveSubmission(payload,attempt + 1);
+    }
+    throw error;
+  }finally{
+    clearTimeout(timer);
   }
 }
 
@@ -678,34 +699,50 @@ function buildClientReportData(){
   };
 }
 
-$("#downloadPdfBtn").addEventListener("click", () => {
+$("#downloadPdfBtn").addEventListener("click", async () => {
   const data = buildClientReportData();
   if(!data){
     toast("Hasil belum tersedia.");
     return;
   }
+
+  const button = $("#downloadPdfBtn");
+  const original = button.textContent;
+  button.disabled = true;
+  button.textContent = "Menyiapkan PDF…";
 
   try{
     if(!window.PolaPikirReport?.download) throw new Error("Generator PDF belum siap.");
-    window.PolaPikirReport.download(data);
+    await window.PolaPikirReport.download(data);
   }catch(error){
     console.error(error);
-    toast("Gagal membuat PDF. Muat ulang halaman dan coba lagi.");
+    toast("Gagal membuat PDF. Periksa koneksi lalu coba lagi.");
+  }finally{
+    button.disabled = false;
+    button.textContent = original;
   }
 });
 
-$("#printPdfBtn").addEventListener("click", () => {
+$("#printPdfBtn").addEventListener("click", async () => {
   const data = buildClientReportData();
   if(!data){
     toast("Hasil belum tersedia.");
     return;
   }
 
+  const button = $("#printPdfBtn");
+  const original = button.textContent;
+  button.disabled = true;
+  button.textContent = "Menyiapkan…";
+
   try{
-    window.PolaPikirReport.print(data);
+    await window.PolaPikirReport.print(data);
   }catch(error){
     console.error(error);
     toast("Gagal membuka PDF untuk dicetak.");
+  }finally{
+    button.disabled = false;
+    button.textContent = original;
   }
 });
 

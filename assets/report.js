@@ -108,10 +108,57 @@
     return "Laporan_Profil_Pola_Pikir_" + clean + ".pdf";
   }
 
+  const JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+  const AUTOTABLE_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js";
+  let pdfLoader = null;
+
   function assertLibrary(){
     if(!window.jspdf?.jsPDF) throw new Error("Pustaka PDF belum termuat.");
     const test = new window.jspdf.jsPDF();
     if(typeof test.autoTable !== "function") throw new Error("Pustaka tabel PDF belum termuat.");
+  }
+
+  function loadScript(src){
+    return new Promise((resolve,reject) => {
+      const existing = document.querySelector(`script[data-pdf-src="${src}"]`);
+      if(existing){
+        if(existing.dataset.loaded === "true") return resolve();
+        existing.addEventListener("load",resolve,{once:true});
+        existing.addEventListener("error",() => reject(new Error("Gagal memuat pustaka PDF.")),{once:true});
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.dataset.pdfSrc = src;
+      script.addEventListener("load",() => {
+        script.dataset.loaded = "true";
+        resolve();
+      },{once:true});
+      script.addEventListener("error",() => reject(new Error("Gagal memuat pustaka PDF.")),{once:true});
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensurePdfLibraries(){
+    try{
+      assertLibrary();
+      return;
+    }catch{}
+
+    if(!pdfLoader){
+      pdfLoader = (async () => {
+        await loadScript(JSPDF_URL);
+        await loadScript(AUTOTABLE_URL);
+        assertLibrary();
+      })().catch(error => {
+        pdfLoader = null;
+        throw error;
+      });
+    }
+
+    return pdfLoader;
   }
 
   function buildDoc(input){
@@ -351,12 +398,14 @@
     return {doc,data};
   }
 
-  function download(data){
+  async function download(data){
+    await ensurePdfLibraries();
     const built = buildDoc(data);
     built.doc.save(filename(built.data));
   }
 
-  function print(data){
+  async function print(data){
+    await ensurePdfLibraries();
     const built = buildDoc(data);
 
     if(typeof built.doc.autoPrint === "function"){

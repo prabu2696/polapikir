@@ -29,10 +29,8 @@ function switchAdmin(id){
 
   if(!adminReducedMotion()){
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        target.classList.add("admin-entering");
-        window.setTimeout(() => target.classList.remove("admin-entering"),420);
-      });
+      target.classList.add("admin-entering");
+      window.setTimeout(() => target.classList.remove("admin-entering"),220);
     });
   }
 }
@@ -59,19 +57,29 @@ async function api(path,options={}){
 
   headers.Authorization = "Bearer " + (sessionToken || CFG.supabaseAnonKey);
 
-  const response = await fetch(baseUrl() + path,{
-    ...options,
-    headers
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(),12000);
 
-  if(!response.ok){
-    let body = "";
-    try{ body = await response.text(); }catch{}
-    throw new Error(body || "Request gagal.");
+  try{
+    const response = await fetch(baseUrl() + path,{
+      ...options,
+      headers,
+      signal:options.signal || controller.signal
+    });
+
+    if(!response.ok){
+      let body = "";
+      try{ body = await response.text(); }catch{}
+      const error = new Error(body || "Request gagal.");
+      error.status = response.status;
+      throw error;
+    }
+
+    if(response.status === 204) return null;
+    return response.json();
+  }finally{
+    clearTimeout(timer);
   }
-
-  if(response.status === 204) return null;
-  return response.json();
 }
 
 async function restoreSession(){
@@ -190,7 +198,13 @@ $("#refreshBtn").addEventListener("click",async () => {
   }
 });
 
-$("#searchInput").addEventListener("input",render);
+let renderFrame = 0;
+function scheduleRender(){
+  cancelAnimationFrame(renderFrame);
+  renderFrame = requestAnimationFrame(render);
+}
+
+$("#searchInput").addEventListener("input",scheduleRender);
 $("#typeFilter").addEventListener("change",render);
 $("#phaseFilter").addEventListener("change",render);
 $("#closeDetail").addEventListener("click",() => $("#detailDialog").close());
@@ -207,11 +221,41 @@ async function openDashboard(){
 
 async function loadRows(){
   try{
-    rows = await api("/rest/v1/submissions?select=*&order=created_at.desc");
+    const pageSize = 500;
+    const all = [];
+    let offset = 0;
+
+    while(true){
+      const select = [
+        "id","client_submission_id","instrument_version","participant_type",
+        "participant_name","school_raw","school_normalized","grade","phase",
+        "answers","raw_score","raw_max_score","score","max_score","category","created_at"
+      ].join(",");
+
+      const batch = await api(
+        `/rest/v1/submissions?select=${encodeURIComponent(select)}&order=created_at.desc&limit=${pageSize}&offset=${offset}`
+      );
+
+      all.push(...batch);
+      if(batch.length < pageSize || all.length >= 5000) break;
+      offset += pageSize;
+    }
+
+    rows = all;
     render();
   }catch(error){
     console.error(error);
-    adminToast("Gagal memuat data admin.");
+    if(error?.status === 401){
+      sessionToken = null;
+      sessionStorage.removeItem("pp_admin_session");
+      $("#logoutBtn").hidden = true;
+      switchAdmin("#loginView");
+      adminToast("Sesi admin berakhir. Silakan masuk kembali.");
+      return;
+    }
+    adminToast(error?.name === "AbortError"
+      ? "Koneksi terlalu lama. Coba muat ulang."
+      : "Gagal memuat data admin.");
   }
 }
 
@@ -248,12 +292,13 @@ function render(){
   const wrapper = $("#schoolGroups");
   wrapper.innerHTML = "";
 
+  const fragment = document.createDocumentFragment();
+
   Object.entries(grouped)
     .sort(([schoolA],[schoolB]) => schoolA.localeCompare(schoolB,"id"))
-    .forEach(([school,items],groupIndex) => {
+    .forEach(([school,items]) => {
       const card = document.createElement("section");
       card.className = "school-card";
-      card.style.animationDelay = Math.min(groupIndex * 35,210) + "ms";
 
       const rowsHtml = items.map(row => {
         const participantLabel = row.participant_type === "student" ? "Murid MI" : "Guru MI";
@@ -263,13 +308,13 @@ function render(){
 
         return `
           <tr>
-            <td><strong>${escapeHtml(row.participant_name || "—")}</strong></td>
-            <td><span class="badge ${row.participant_type === "student" ? "student" : ""}">${participantLabel}</span></td>
-            <td>${phaseLabel}</td>
-            <td><strong>${score}</strong> / 100</td>
-            <td>${escapeHtml(row.category || "—")}</td>
-            <td>${created}</td>
-            <td><button class="detail-btn" data-id="${row.id}" type="button">Lihat Detail</button></td>
+            <td data-label="Nama"><strong>${escapeHtml(row.participant_name || "—")}</strong></td>
+            <td data-label="Peserta"><span class="badge ${row.participant_type === "student" ? "student" : ""}">${participantLabel}</span></td>
+            <td data-label="Fase">${phaseLabel}</td>
+            <td data-label="Nilai"><strong>${score}</strong> / 100</td>
+            <td data-label="Kategori">${escapeHtml(row.category || "—")}</td>
+            <td data-label="Waktu">${created}</td>
+            <td data-label="Aksi"><button class="detail-btn" data-id="${row.id}" type="button">Lihat Detail</button></td>
           </tr>
         `;
       }).join("");
@@ -296,8 +341,10 @@ function render(){
         </table>
       `;
 
-      wrapper.appendChild(card);
+      fragment.appendChild(card);
     });
+
+  wrapper.appendChild(fragment);
 
   wrapper.querySelectorAll(".detail-btn").forEach(button => {
     button.addEventListener("click",() => openDetail(button.dataset.id));
@@ -346,21 +393,35 @@ function openDetail(id){
     </div>
   `;
 
-  $("#downloadAdminPdf").addEventListener("click",() => {
+  $("#downloadAdminPdf").addEventListener("click",async () => {
+    const button = $("#downloadAdminPdf");
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = "Menyiapkan PDF…";
     try{
-      window.PolaPikirReport.download(reportData);
+      await window.PolaPikirReport.download(reportData);
     }catch(error){
       console.error(error);
       adminToast("Gagal membuat PDF laporan.");
+    }finally{
+      button.disabled = false;
+      button.textContent = original;
     }
   });
 
-  $("#printAdminPdf").addEventListener("click",() => {
+  $("#printAdminPdf").addEventListener("click",async () => {
+    const button = $("#printAdminPdf");
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = "Menyiapkan…";
     try{
-      window.PolaPikirReport.print(reportData);
+      await window.PolaPikirReport.print(reportData);
     }catch(error){
       console.error(error);
       adminToast("Gagal membuka PDF untuk dicetak.");
+    }finally{
+      button.disabled = false;
+      button.textContent = original;
     }
   });
 
