@@ -10,7 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/styles.css">
-  <script src="config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js" defer></script>
+  <script src="config.js" defer></script>
+  <script src="assets/report.js" defer></script>
   <script src="assets/app.js" defer></script>
 </head>
 <body>
@@ -171,7 +174,11 @@
           <div id="resultPhaseRow" hidden><span>Fase</span><strong id="resultPhase"></strong></div>
         </div>
 
-        <button class="primary-btn" id="restartBtn">Selesai</button>
+        <div class="result-actions">
+          <button class="primary-btn" id="downloadPdfBtn" type="button">Unduh Laporan PDF</button>
+          <button class="secondary-btn" id="printPdfBtn" type="button">Cetak PDF</button>
+          <button class="secondary-btn" id="restartBtn" type="button">Selesai</button>
+        </div>
       </div>
     </section>
   </main>
