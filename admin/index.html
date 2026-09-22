@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <title>Admin • Profil Pola Pikir MI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <link rel="stylesheet" href="admin.css">
+  <script src="../config.js"></script>
+  <script src="admin.js" defer></script>
+</head>
+<body class="admin-body">
+  <header class="topbar">
+    <a class="brand" href="../">
+      <span class="brand-mark">PP</span>
+      <span><strong>Profil Pola Pikir</strong><small>Panel Administrator</small></span>
+    </a>
+    <button id="logoutBtn" class="admin-logout" hidden>Keluar</button>
+  </header>
+
+  <main class="admin-shell">
+    <section id="loginView" class="admin-view active">
+      <div class="panel admin-login-card">
+        <span class="eyebrow">AKSES TERBATAS</span>
+        <h1>Login Admin</h1>
+        <p>Masuk menggunakan akun administrator yang terdaftar.</p>
+        <form id="loginForm">
+          <label class="field">
+            <span>Email</span>
+            <input id="adminEmail" type="email" autocomplete="username" required placeholder="admin@contoh.id">
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="adminPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
+          </label>
+          <button class="primary-btn" id="loginBtn" type="submit">Masuk ke Dashboard</button>
+        </form>
+        <div class="save-status warn" id="adminConfigWarning" hidden></div>
+      </div>
+    </section>
+
+    <section id="dashboardView" class="admin-view">
+      <div class="admin-heading">
+        <div>
+          <span class="eyebrow">DASHBOARD PENGAWAS</span>
+          <h1>Hasil Profil Pola Pikir</h1>
+          <p>Data guru dan murid dikelompokkan berdasarkan sekolah yang telah dinormalisasi.</p>
+        </div>
+        <button class="secondary-btn" id="refreshBtn">Muat Ulang</button>
+      </div>
+
+      <div class="stat-grid">
+        <article><span>Total Data</span><strong id="statTotal">0</strong></article>
+        <article><span>Guru MI</span><strong id="statTeachers">0</strong></article>
+        <article><span>Murid MI</span><strong id="statStudents">0</strong></article>
+        <article><span>Sekolah</span><strong id="statSchools">0</strong></article>
+      </div>
+
+      <div class="panel admin-filters">
+        <input id="searchInput" type="search" placeholder="Cari nama atau sekolah...">
+        <select id="typeFilter">
+          <option value="">Semua peserta</option>
+          <option value="teacher">Guru MI</option>
+          <option value="student">Murid MI</option>
+        </select>
+        <select id="phaseFilter">
+          <option value="">Semua fase</option>
+          <option value="A">Fase A</option>
+          <option value="B">Fase B</option>
+          <option value="C">Fase C</option>
+        </select>
+      </div>
+
+      <div id="schoolGroups" class="school-groups"></div>
+      <div id="emptyState" class="panel admin-empty" hidden>Tidak ada data yang sesuai dengan filter.</div>
+    </section>
+  </main>
+
+  <dialog id="detailDialog" class="detail-dialog">
+    <button id="closeDetail" class="dialog-close" aria-label="Tutup">×</button>
+    <div id="detailContent"></div>
+  </dialog>
+
+  <div class="toast" id="adminToast" role="status"></div>
+  <footer><span>Panel Administrator</span><strong>Developed by: Prabu26.dev</strong></footer>
+</body>
+</html>
