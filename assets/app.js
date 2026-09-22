@@ -1,138 +1,3 @@
-const APP_CONFIG = window.APP_CONFIG || {};
-
-const teacherQuestions = [
-  "Kemampuan Anda adalah sesuatu yang sangat mendasar yang tidak banyak dapat Anda ubah lagi.",
-  "Tidak peduli seberapapun tingkat kemampuan Anda saat ini, Anda bisa mengubahnya walaupun sedikit.",
-  "Anda akan selalu dapat mengubah kemampuan Anda",
-  "Anda adalah seseorang yang unik, tidak banyak yang dapat dilakukan untuk mengubahnya.",
-  "Anda akan selalu dapat mengubah diri Anda sendiri",
-  "Kemampuan dalam bidang seni dan musik dapat dipelajari oleh siapapun",
-  "Hanya sedikit orang yang benar-benar mahir dalam olahraga, Anda harus membawa bakat ini sejak lahir.",
-  "Matematika lebih mudah dipelajari oleh pria atau seseorang yang berada dalam lingkungan yang menyukainya",
-  "Makin keras Anda mengerjakan sesuatu makin mahir Anda dalam hal ini",
-  "Tidak peduli tipe apapun Anda saat ini, Anda akan selalu dapat mengubahnya",
-  "Mencoba sesuatu yang baru akan sangat menyulitkan Anda sehingga Anda ingin menghindarinya.",
-  "Sebagian orang baik dan pintar, sebagian lagi tidak. Tidak banyak yang dapat berubah.",
-  "Saya sangat menghargai kritik dan saran dari siapapun juga terkait dengan kinerja saya saat ini.",
-  "Saya kurang senang bila ada kritik dan saran dari orang lain.",
-  "Semua orang yang tanpa cacat-otak atau cacat-lahir memiliki kemampuan yang sama dalam belajar",
-  "Anda bisa mempelajari sesuatu yang baru, tapi Anda tidak bisa mengubah kemampuan Anda",
-  "Anda dapat melakukan sesuatu secara berbeda, tapi sebenarnya Anda tetap tidak dapat mengubah kemampuan Anda",
-  "Semua orang pada dasarnya baik, tapi kadang-kadang membuat keputusan yang salah",
-  "Alasan terpenting mengapa Anda melakukan pekerjaan Anda adalah keinginan untuk mempelajari sesuatu yang baru.",
-  "Orang yang benar-benar cerdas, tidak perlu bekerja keras."
-];
-
-const teacherScoring = [
-  [0,1,2,3],[3,2,1,0],[3,2,1,0],[0,1,2,3],[3,2,1,0],
-  [3,2,1,0],[0,1,2,3],[0,1,2,3],[3,2,1,0],[3,2,1,0],
-  [0,1,2,3],[0,1,2,3],[3,2,1,0],[0,1,2,3],[3,2,1,0],
-  [0,1,2,3],[0,1,2,3],[3,2,1,0],[3,2,1,0],[0,1,2,3]
-];
-
-const studentInstruments = {
-  A: {
-    answers: ["Ya", "Kadang-kadang", "Tidak"],
-    scoring: [
-      [2,1,0],[2,1,0],[2,1,0],[0,1,2],[2,1,0],
-      [2,1,0],[0,1,2],[2,1,0],[2,1,0],[2,1,0]
-    ],
-    questions: [
-      "Kalau saya belum bisa mengerjakan sesuatu, saya mau mencoba lagi.",
-      "Kalau jawaban saya salah, saya mau belajar supaya bisa.",
-      "Saya berani bertanya kepada guru saat belum mengerti.",
-      "Kalau tugas terasa sulit, saya langsung ingin berhenti.",
-      "Saya senang mencoba cara baru saat belajar.",
-      "Kalau teman lebih dulu bisa, saya tetap mau belajar.",
-      "Kalau saya gagal sekali, saya merasa saya tidak akan bisa.",
-      "Saya percaya latihan membuat saya semakin bisa.",
-      "Saya mau mendengarkan saran guru agar belajar lebih baik.",
-      "Saya bangga saat berhasil setelah mencoba beberapa kali."
-    ]
-  },
-  B: {
-    answers: ["Sangat Sesuai", "Sesuai", "Kurang Sesuai", "Tidak Sesuai"],
-    scoring: [
-      [3,2,1,0],[3,2,1,0],[3,2,1,0],[0,1,2,3],[3,2,1,0],
-      [3,2,1,0],[3,2,1,0],[0,1,2,3],[3,2,1,0],[3,2,1,0],
-      [3,2,1,0],[0,1,2,3],[3,2,1,0],[3,2,1,0],[3,2,1,0]
-    ],
-    questions: [
-      "Saat pelajaran terasa sulit, saya tetap mencoba sampai lebih mengerti.",
-      "Kesalahan membantu saya mengetahui bagian yang perlu saya pelajari lagi.",
-      "Kalau mendapat nilai kurang baik, saya mau mempelajari kembali bagian yang belum saya pahami.",
-      "Saya lebih suka menghindari pelajaran yang saya rasa tidak saya kuasai.",
-      "Kalau teman lebih mahir, saya dapat belajar dari cara yang ia gunakan.",
-      "Saran dari guru membantu saya memperbaiki hasil belajar.",
-      "Saya mau mencoba cara lain ketika cara pertama belum berhasil.",
-      "Kalau saya tidak langsung bisa, berarti saya memang tidak berbakat dalam pelajaran itu.",
-      "Saya berani bertanya setelah mencoba sendiri tetapi masih belum mengerti.",
-      "Saya percaya latihan yang teratur dapat meningkatkan kemampuan saya.",
-      "Saya tertarik mengerjakan tugas yang sedikit lebih menantang dari biasanya.",
-      "Saya malu jika harus memperbaiki pekerjaan setelah dikoreksi.",
-      "Saya bisa membuat target kecil agar tugas yang sulit terasa lebih mudah dikerjakan.",
-      "Setelah gagal, saya mau mencoba kembali dengan persiapan yang lebih baik.",
-      "Saya menghargai kemajuan kecil yang saya capai dalam belajar."
-    ]
-  },
-  C: {
-    answers: ["Sangat Sesuai", "Sesuai", "Kurang Sesuai", "Tidak Sesuai"],
-    scoring: [
-      [3,2,1,0],[3,2,1,0],[3,2,1,0],[3,2,1,0],[3,2,1,0],
-      [0,1,2,3],[3,2,1,0],[3,2,1,0],[3,2,1,0],[3,2,1,0],
-      [0,1,2,3],[3,2,1,0],[3,2,1,0],[0,1,2,3],[3,2,1,0],
-      [3,2,1,0],[3,2,1,0],[0,1,2,3],[3,2,1,0],[3,2,1,0]
-    ],
-    questions: [
-      "Saya percaya kemampuan saya dapat meningkat melalui latihan dan cara belajar yang tepat.",
-      "Ketika mendapat nilai kurang baik, saya mencari bagian yang belum saya pahami.",
-      "Saya menggunakan masukan guru untuk memperbaiki cara belajar atau hasil pekerjaan saya.",
-      "Saya tetap berusaha ketika sebuah tugas membutuhkan waktu lebih lama dari yang saya perkirakan.",
-      "Saya melihat kesalahan sebagai informasi tentang apa yang perlu saya perbaiki.",
-      "Jika saya kesulitan dalam suatu pelajaran, biasanya itu berarti saya memang tidak mampu.",
-      "Keberhasilan teman dapat menjadi sumber ide bagi saya untuk belajar lebih efektif.",
-      "Saya bersedia mencoba tugas yang menantang walaupun ada kemungkinan jawaban saya salah.",
-      "Setelah gagal, saya mencoba memahami penyebabnya sebelum mencoba lagi.",
-      "Saya menetapkan target belajar dan memeriksa kemajuan saya dari waktu ke waktu.",
-      "Lebih baik menghindari tugas yang sulit agar saya tidak terlihat gagal.",
-      "Saya lebih memperhatikan kemajuan diri saya dibanding hanya membandingkan nilai dengan orang lain.",
-      "Saya mau meminta bantuan setelah terlebih dahulu berusaha mencari jalan keluarnya.",
-      "Orang yang benar-benar pintar tidak perlu banyak berlatih.",
-      "Saya dapat menggunakan kritik yang jelas untuk memperbaiki pekerjaan berikutnya.",
-      "Satu nilai yang rendah tidak menentukan kemampuan saya untuk selamanya.",
-      "Jika satu cara belajar tidak efektif, saya mencoba strategi yang berbeda.",
-      "Saya mudah menyerah ketika hasil belajar tidak cepat terlihat.",
-      "Saya dapat menjelaskan hal yang saya pelajari dari pengalaman menghadapi kesulitan.",
-      "Saya percaya usaha, strategi, dan latihan dapat membuat kemampuan saya terus berkembang."
-    ]
-  }
-};
-
-const teacherAnswers = ["Sangat Setuju", "Setuju", "Tidak Setuju", "Sangat Tidak Setuju"];
-
-const teacherCategories = [
-  {
-    min:0,max:20,
-    label:"Pola Pikir Tetap (Fixed Mindset)",
-    explanation:"Anda cenderung memandang kemampuan sebagai sesuatu yang relatif tetap. Hasil ini dapat digunakan sebagai bahan refleksi terhadap respons pada tantangan, usaha, dan kegagalan."
-  },
-  {
-    min:21,max:33,
-    label:"Pola Pikir Tetap Bertumbuh (Fixed-Growth Mindset)",
-    explanation:"Terlihat campuran antara keyakinan yang tetap dan keyakinan bahwa kemampuan dapat berkembang melalui pengalaman, latihan, serta usaha."
-  },
-  {
-    min:34,max:44,
-    label:"Pola Pikir Bertumbuh Tetap (Growth-Fixed Mindset)",
-    explanation:"Anda lebih banyak menunjukkan keyakinan bahwa kemampuan dapat berkembang, meskipun pada beberapa situasi masih terdapat kecenderungan yang lebih tetap."
-  },
-  {
-    min:45,max:60,
-    label:"Pola Pikir Bertumbuh (Growth Mindset)",
-    explanation:"Anda cenderung melihat kemampuan sebagai sesuatu yang dapat dikembangkan melalui latihan, strategi, umpan balik, dan ketekunan."
-  }
-];
-
 const state = {
   role:null,
   name:"",
@@ -161,6 +26,7 @@ function smoothBehavior(){
 }
 
 function showView(id){
+  clearTimeout(state.advanceTimer);
   const target = $(id);
   if(!target) return;
 
@@ -175,6 +41,16 @@ function showView(id){
   });
 
   target.classList.add("active");
+  const step = id.replace("#", "").replace("View", "");
+  let reached = false;
+  document.querySelectorAll("[data-step]").forEach(item => {
+    const currentStep = item.dataset.step === step;
+    item.classList.toggle("completed", !reached && !currentStep);
+    item.removeAttribute("aria-current");
+    if(currentStep){ item.setAttribute("aria-current", "step"); reached = true; }
+  });
+  const heading = target.querySelector("h1");
+  if(heading){ heading.tabIndex = -1; heading.focus({preventScroll:true}); }
   window.scrollTo({top:0,behavior:"auto"});
 
   if(!prefersReducedMotion()){
@@ -246,8 +122,8 @@ function setupRole(role){
   state.role = role;
 
   const student = role === "student";
-  $("#identityTitle").textContent = student ? "Data Murid MI" : "Data Guru MI";
-  $("#identityEyebrow").textContent = student ? "ASESMEN MURID MI" : "ASESMEN GURU MI";
+  $("#identityTitle").textContent = student ? "Mari berkenalan." : "Mulai dengan identitas Anda.";
+  $("#identityEyebrow").textContent = student ? "Asesmen murid MI" : "Asesmen guru MI";
   $("#nameLabel").textContent = student ? "Nama Murid" : "Nama Guru";
   $("#gradeField").hidden = !student;
   $("#gradeSelect").required = student;
@@ -291,13 +167,16 @@ $("#identityForm").addEventListener("submit", event => {
     const rawSchool = $("#schoolName").value;
     const grade = Number($("#gradeSelect").value);
 
-    if(!rawName.trim() || !rawSchool.trim()){
-      toast("Nama dan sekolah wajib diisi.");
-      return;
-    }
-
-    if(state.role === "student" && !grade){
-      toast("Silakan pilih kelas murid.");
+    const invalid = rawName.trim().length < 2 ? ["#participantName", "Nama lengkap perlu diisi, minimal 2 karakter."]
+      : rawSchool.trim().length < 2 ? ["#schoolName", "Nama madrasah perlu diisi, minimal 2 karakter."]
+      : state.role === "student" && (!Number.isInteger(grade) || grade < 1 || grade > 6)
+        ? ["#gradeSelect", "Pilih kelas murid terlebih dahulu."] : null;
+    $("#identityError").hidden = !invalid;
+    $$("#identityForm [aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"));
+    if(invalid){
+      $("#identityError").textContent = invalid[1];
+      $(invalid[0]).setAttribute("aria-invalid", "true");
+      $(invalid[0]).focus();
       return;
     }
 
@@ -307,16 +186,16 @@ $("#identityForm").addEventListener("submit", event => {
     state.grade = state.role === "student" ? grade : null;
     state.phase = state.role === "student" ? getPhase(grade) : null;
 
-    const instrument = state.role === "teacher"
-      ? {questions:teacherQuestions}
-      : studentInstruments[state.phase];
+    const instrument = window.PolaPikirInstruments.instrument(state.role,state.phase);
 
-    if(!instrument || !Array.isArray(instrument.questions) || instrument.questions.length === 0){
+    if(!instrument || !Array.isArray(instrument.items) || instrument.items.length === 0){
       throw new Error("Instrumen asesmen tidak ditemukan.");
     }
 
-    state.questions = [...instrument.questions];
-    state.answers = Array(state.questions.length).fill(null);
+    const sameInstrument = state.questions.length === instrument.items.length && state.instrumentKey === `${state.role}-${state.phase}`;
+    state.questions = instrument.items.map(item => item.text);
+    if(!sameInstrument) state.answers = Array(state.questions.length).fill(null);
+    state.instrumentKey = `${state.role}-${state.phase}`;
     state.mobileIndex = 0;
     state.clientSubmissionId = makeId();
     state.lastPayload = null;
@@ -337,9 +216,7 @@ $("#identityForm").addEventListener("submit", event => {
 });
 
 function getAnswerLabels(){
-  return state.role === "teacher"
-    ? teacherAnswers
-    : studentInstruments[state.phase].answers;
+  return window.PolaPikirInstruments.instrument(state.role,state.phase).answers;
 }
 
 function renderAssessment(){
@@ -348,9 +225,11 @@ function renderAssessment(){
   }
 
   const student = state.role === "student";
+  document.body.classList.toggle("phase-a", student && state.phase === "A");
+  $("#assessmentTitle").textContent = student ? "Bagaimana caramu belajar?" : "Kenali cara Anda belajar.";
   $("#participantBadge").textContent = student
-    ? `MURID MI • FASE ${state.phase} • ${state.questions.length} SOAL`
-    : "GURU MI • 20 SOAL";
+    ? `Murid MI · Fase ${state.phase} · ${state.questions.length} pernyataan`
+    : "Guru MI · 20 pernyataan";
   $("#participantDisplay").textContent = `Nama: ${state.name}`;
   $("#schoolDisplay").textContent = `Sekolah: ${state.schoolNormalized}`;
 
@@ -366,26 +245,19 @@ function renderAssessment(){
 
     const radioOptions = labels.map((label,answerIndex) => `
       <label>
-        <input type="radio" name="q${index}" value="${answerIndex}">
+        <input type="radio" name="q${index}" value="${answerIndex}" ${state.answers[index] === answerIndex ? "checked" : ""}>
+        ${student && state.phase === "A" ? `<span class="choice-emoji" aria-hidden="true">${["🙂","🤔","🙁"][answerIndex]}</span>` : ""}
         <span>${label}</span>
       </label>
     `).join("");
 
-    const selectOptions = [
-      '<option value="">Pilih jawaban</option>',
-      ...labels.map((label,answerIndex) => `<option value="${answerIndex}">${label}</option>`)
-    ].join("");
-
     card.innerHTML = `
-      <div class="q-number">${String(index + 1).padStart(2,"0")}</div>
-      <div class="q-text">${question}</div>
-      <div>
+      <div class="question-heading"><span class="q-number" aria-hidden="true">${String(index + 1).padStart(2,"0")}</span>
+      <h2 class="q-text" id="question-${index}" tabindex="-1">${question}</h2></div>
+      <div role="radiogroup" aria-labelledby="question-${index}">
         <div class="answer-options ${labels.length === 3 ? "three-options" : ""}">
           ${radioOptions}
         </div>
-        <select class="mobile-select" aria-label="Jawaban pertanyaan ${index + 1}">
-          ${selectOptions}
-        </select>
       </div>
     `;
 
@@ -394,24 +266,8 @@ function renderAssessment(){
     card.querySelectorAll('input[type="radio"]').forEach(input => {
       input.addEventListener("change", () => {
         state.answers[index] = Number(input.value);
-        card.querySelector(".mobile-select").value = input.value;
         updateProgress();
       });
-    });
-
-    const select = card.querySelector(".mobile-select");
-    select.addEventListener("change", () => {
-      state.answers[index] = select.value === "" ? null : Number(select.value);
-
-      card.querySelectorAll('input[type="radio"]').forEach(radio => {
-        radio.checked = Number(radio.value) === state.answers[index];
-      });
-
-      updateProgress();
-
-      if(select.value !== "" && index < state.questions.length - 1){
-        setTimeout(() => setMobileQuestion(index + 1), 90);
-      }
     });
   });
 
@@ -428,12 +284,14 @@ function updateProgress(){
   $("#progressText").textContent = `${answered} dari ${total} terjawab`;
   $("#progressPercent").textContent = `${percent}%`;
   $("#progressBar").style.width = `${percent}%`;
+  $(".progress-track").setAttribute("aria-valuenow", String(percent));
   $("#submitHint").textContent = answered === total
     ? "Semua jawaban sudah lengkap. Anda dapat melihat hasil."
     : "Hasil akan dihitung setelah seluruh pertanyaan dijawab.";
 }
 
-function setMobileQuestion(index){
+function setMobileQuestion(index, focus=false){
+  clearTimeout(state.advanceTimer);
   state.mobileIndex = Math.max(0,Math.min(index,state.questions.length - 1));
 
   $$(".question-card").forEach((card,cardIndex) => {
@@ -443,94 +301,33 @@ function setMobileQuestion(index){
   $("#mobileCounter").textContent = `${state.mobileIndex + 1} / ${state.questions.length}`;
   $("#prevQuestion").disabled = state.mobileIndex === 0;
   $("#nextQuestion").textContent = state.mobileIndex === state.questions.length - 1
-    ? "Cek Nilai"
-    : "Selanjutnya ›";
+    ? "Cek nilai"
+    : "Berikutnya";
 
   const active = document.querySelector(`.question-card[data-index="${state.mobileIndex}"]`);
-  if(active && window.innerWidth <= 980){
-    const rect = active.getBoundingClientRect();
-    const topSafe = 168;
-    const bottomSafe = window.innerHeight - 24;
-    if(rect.top < topSafe || rect.bottom > bottomSafe){
-      active.scrollIntoView({behavior:smoothBehavior(),block:"start"});
-    }
+  if(active && window.innerWidth <= 700 && $("#assessmentView").classList.contains("active")){
+    if(focus) active.querySelector("h2").focus({preventScroll:true});
+    const top = active.getBoundingClientRect().top + window.scrollY - 65;
+    window.scrollTo({top:Math.max(0,top),behavior:smoothBehavior()});
   }
 }
 
-$("#prevQuestion").addEventListener("click", () => setMobileQuestion(state.mobileIndex - 1));
+$("#prevQuestion").addEventListener("click", () => setMobileQuestion(state.mobileIndex - 1,true));
 $("#nextQuestion").addEventListener("click", () => {
   if(state.mobileIndex === state.questions.length - 1){
     $("#assessmentForm").requestSubmit();
   }else{
-    setMobileQuestion(state.mobileIndex + 1);
+    setMobileQuestion(state.mobileIndex + 1,true);
   }
 });
 
-function studentCategory(score){
-  if(score < 40){
-    return {
-      label:"Perlu Dukungan untuk Bertumbuh",
-      explanation:"Murid masih memerlukan dukungan yang konsisten untuk melihat tantangan, kesalahan, latihan, dan masukan sebagai bagian dari proses belajar."
-    };
-  }
-  if(score < 70){
-    return {
-      label:"Pola Pikir Bertumbuh Mulai Berkembang",
-      explanation:"Murid sudah menunjukkan beberapa kebiasaan belajar yang mendukung pertumbuhan dan masih dapat diperkuat melalui latihan, strategi, serta umpan balik."
-    };
-  }
-  if(score < 85){
-    return {
-      label:"Pola Pikir Bertumbuh Berkembang Baik",
-      explanation:"Murid cukup konsisten menunjukkan kemauan mencoba, belajar dari kesalahan, menerima masukan, dan memperbaiki strategi belajar."
-    };
-  }
-  return {
-    label:"Pola Pikir Bertumbuh Berkembang Sangat Baik",
-    explanation:"Murid sangat konsisten menunjukkan ketekunan, keterbukaan terhadap masukan, keberanian menghadapi tantangan, dan keyakinan bahwa kemampuan dapat berkembang."
-  };
-}
-
 function calculateResult(){
-  if(!Array.isArray(state.answers) || state.answers.length !== state.questions.length){
-    throw new Error("Jawaban belum siap dihitung.");
-  }
-
-  let rawScore = 0;
-  let rawMaxScore = 0;
-  let category;
-
-  if(state.role === "teacher"){
-    state.answers.forEach((answer,index) => {
-      rawScore += teacherScoring[index][answer];
-    });
-    rawMaxScore = 60;
-    category = teacherCategories.find(item => rawScore >= item.min && rawScore <= item.max);
-  }else{
-    const instrument = studentInstruments[state.phase];
-
-    state.answers.forEach((answer,index) => {
-      rawScore += instrument.scoring[index][answer];
-    });
-
-    rawMaxScore = state.phase === "A"
-      ? 20
-      : state.phase === "B"
-        ? 45
-        : 60;
-
-    category = studentCategory(Math.round((rawScore * 100) / rawMaxScore));
-  }
-
-  const score = Math.max(0,Math.min(100,Math.round((rawScore * 100) / rawMaxScore)));
-
+  const profile = window.PolaPikirInstruments.evaluate(state.role,state.phase,state.answers);
   return {
-    score,
+    ...profile,
     maxScore:100,
-    rawScore,
-    rawMaxScore,
-    category:category.label,
-    explanation:category.explanation
+    category:"Profil enam mindset",
+    explanation:"Hasil menunjukkan kecenderungan jawaban pada enam cara berpikir dalam belajar dan mengajar. Gunakan bersama pengamatan dan percakapan, bukan sebagai label tetap."
   };
 }
 
@@ -539,7 +336,7 @@ function makePayload(){
 
   return {
     client_submission_id:state.clientSubmissionId,
-    instrument_version:"2026.09-v3",
+    instrument_version:window.PolaPikirInstruments.version,
     participant_type:state.role,
     participant_name:state.name,
     school_raw:state.schoolRaw,
@@ -549,6 +346,7 @@ function makePayload(){
     answers:state.questions.map((question,index) => ({
       number:index + 1,
       question,
+      dimension:window.PolaPikirInstruments.instrument(state.role,state.phase).items[index].dimension,
       answerIndex:state.answers[index],
       answerLabel:labels[state.answers[index]]
     }))
@@ -613,7 +411,7 @@ async function sendToAdmin(payload){
 
   try{
     await saveSubmission(payload);
-    setSaveState("ok","✓ Hasil berhasil disimpan dan tersedia di dashboard admin.");
+    setSaveState("ok","Hasil tersimpan dan dapat dilihat oleh pengawas.");
   }catch(error){
     console.error(error);
     setSaveState(
@@ -635,10 +433,11 @@ $("#assessmentForm").addEventListener("submit",event => {
 
   if(missingIndex !== -1){
     toast(`Pertanyaan ${missingIndex + 1} belum dijawab.`);
-    setMobileQuestion(missingIndex);
+    setMobileQuestion(missingIndex,true);
 
     const missingCard = document.querySelector(`.question-card[data-index="${missingIndex}"]`);
     if(missingCard){
+      missingCard.querySelector("h2").focus({preventScroll:true});
       missingCard.scrollIntoView({behavior:smoothBehavior(),block:"center"});
     }
     return;
@@ -662,6 +461,24 @@ function renderResult(result){
   $("#resultExplanation").textContent = result.explanation;
   $("#resultName").textContent = state.name;
   $("#resultSchool").textContent = state.schoolNormalized;
+  $("#resultLeading").textContent = result.leading.length ? result.leading.map(item => item.label).join(" · ") : "Belum ada aspek yang lebih menonjol";
+  $("#resultTendencies").replaceChildren(...result.tendencies.map(item => {
+    const row = document.createElement("div");
+    row.className = "mindset-row";
+    const heading = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = item.label;
+    const value = document.createElement("span");
+    value.textContent = `${item.percent}% · ${item.count} soal${item.sufficient ? "" : " · indikasi awal"}`;
+    heading.append(name,value);
+    const track = document.createElement("div");
+    track.className = "mindset-track";
+    const fill = document.createElement("span");
+    fill.style.width = `${item.percent}%`;
+    track.append(fill);
+    row.append(heading,track);
+    return row;
+  }));
 
   const phaseRow = $("#resultPhaseRow");
   phaseRow.hidden = state.role !== "student";
@@ -679,6 +496,7 @@ function buildClientReportData(){
   const labels = getAnswerLabels();
 
   return {
+    instrumentVersion:window.PolaPikirInstruments.version,
     participantType:state.role,
     participantName:state.name,
     school:state.schoolNormalized,
@@ -687,6 +505,7 @@ function buildClientReportData(){
     answers:state.questions.map((question,index) => ({
       number:index + 1,
       question,
+      dimension:window.PolaPikirInstruments.instrument(state.role,state.phase).items[index].dimension,
       answerIndex:state.answers[index],
       answerLabel:labels[state.answers[index]]
     })),

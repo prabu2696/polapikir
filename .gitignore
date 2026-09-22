@@ -1,0 +1,6 @@
+.codex/
+node_modules/
+tmp/
+output/
+tests/results/
+*.log
