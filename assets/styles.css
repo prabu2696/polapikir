@@ -412,9 +412,30 @@ button:focus-visible,input:focus-visible,select:focus-visible{
   border-radius:15px
 }
 .participant-card span,.participant-card strong,.participant-card small{display:block}
-.participant-card span{font-size:8px;font-weight:800;letter-spacing:.12em;color:var(--green)}
-.participant-card strong{font-size:12px;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.participant-card small{font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.participant-card span{
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.12em;
+  color:var(--green);
+  line-height:1.35
+}
+.participant-card strong{
+  font-size:11px;
+  margin-top:6px;
+  line-height:1.4;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+.participant-card small{
+  margin-top:2px;
+  font-size:9px;
+  line-height:1.4;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
 
 .progress-card{
   position:sticky;

@@ -353,8 +353,8 @@ function renderAssessment(){
   $("#participantBadge").textContent = student
     ? `MURID MI • FASE ${state.phase} • ${state.questions.length} SOAL`
     : "GURU MI • 20 SOAL";
-  $("#participantDisplay").textContent = state.name;
-  $("#schoolDisplay").textContent = state.schoolNormalized;
+  $("#participantDisplay").textContent = `Nama: ${state.name}`;
+  $("#schoolDisplay").textContent = `Sekolah: ${state.schoolNormalized}`;
 
   const container = $("#questionsContainer");
   const labels = getAnswerLabels();
