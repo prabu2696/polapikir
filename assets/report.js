@@ -1,15 +1,15 @@
 (function(){
   const C = {
-    green:[23,107,54],
-    greenDark:[13,85,40],
-    greenSoft:[234,244,237],
+    green:[13,59,35],
+    greenDark:[13,59,35],
+    greenSoft:[233,240,235],
     gold:[198,154,21],
     goldSoft:[255,246,217],
-    text:[24,27,24],
-    muted:[108,116,108],
-    line:[224,228,222],
-    soft:[248,249,246],
-    white:[255,255,255]
+    text:[45,45,45],
+    muted:[104,100,93],
+    line:[221,216,207],
+    soft:[250,249,246],
+    white:[255,253,252]
   };
 
   const teacherScoring = [
@@ -52,11 +52,36 @@
     return value === null || value === undefined || value === "" ? fallback : String(value);
   }
 
-  function itemScore(type,phase,index,answerIndex){
+  function itemScore(type,phase,index,answerIndex,version){
     const selected = Number(answerIndex);
     if(!Number.isInteger(selected)) return "-";
+    if(version === window.PolaPikirInstruments?.version){
+      const instrument = window.PolaPikirInstruments.instrument(type,phase);
+      return window.PolaPikirInstruments.rawPoint(instrument?.items[index],selected,instrument?.answers.length) ?? "-";
+    }
     const matrix = type === "teacher" ? teacherScoring : studentScoring[phase];
     return matrix?.[index]?.[selected] ?? "-";
+  }
+
+  function itemWeight(type,phase){
+    const matrix = type === "teacher" ? teacherScoring : studentScoring[phase];
+    return matrix?.length ? 100 / matrix.length : 0;
+  }
+
+  function itemPoints(type,phase,index,answerIndex,version){
+    if(version === window.PolaPikirInstruments?.version){
+      const instrument = window.PolaPikirInstruments.instrument(type,phase);
+      const raw = itemScore(type,phase,index,answerIndex,version);
+      return typeof raw === "number" ? raw / (instrument.answers.length - 1) * itemWeight(type,phase) : null;
+    }
+    const matrix = type === "teacher" ? teacherScoring : studentScoring[phase];
+    const raw = itemScore(type,phase,index,answerIndex);
+    if(typeof raw !== "number" || !matrix?.[index]) return null;
+    return raw / Math.max(...matrix[index]) * itemWeight(type,phase);
+  }
+
+  function formatPoints(value){
+    return value === null ? "-" : value.toLocaleString("id-ID",{maximumFractionDigits:2});
   }
 
   function formatDate(value){
@@ -77,9 +102,26 @@
     const participantType = data.participantType || data.participant_type;
     const phase = data.phase || null;
     const grade = data.grade || null;
-    const answers = Array.isArray(data.answers) ? data.answers : [];
+    let answers = Array.isArray(data.answers) ? data.answers : [];
+    const instrumentVersion = data.instrumentVersion || data.instrument_version || "2026.09-v3";
+    let profile = null;
+    if(instrumentVersion === window.PolaPikirInstruments?.version){
+      try{
+        profile = window.PolaPikirInstruments.evaluate(participantType,phase,answers.map(answer => Number(answer.answerIndex)));
+        const instrument = window.PolaPikirInstruments.instrument(participantType,phase);
+        answers = answers.map((answer,index) => ({
+          ...answer,
+          number:index + 1,
+          question:instrument.items[index].text,
+          dimension:instrument.items[index].dimension,
+          answerLabel:instrument.answers[Number(answer.answerIndex)]
+        }));
+      }catch(error){console.warn("Profil mindset tidak dapat dihitung",error);}
+    }
 
     return {
+      instrumentVersion,
+      profile,
       participantType,
       participantName:safe(data.participantName || data.participant_name),
       school:safe(data.school || data.school_normalized || data.school_raw),
@@ -108,8 +150,9 @@
     return "Laporan_Profil_Pola_Pikir_" + clean + ".pdf";
   }
 
-  const JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-  const AUTOTABLE_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js";
+  const assetBase = new URL(".",document.currentScript.src);
+  const JSPDF_URL = new URL("vendor/jspdf.umd.min.js",assetBase).href;
+  const AUTOTABLE_URL = new URL("vendor/jspdf.plugin.autotable.min.js",assetBase).href;
   let pdfLoader = null;
 
   function assertLibrary(){
@@ -136,7 +179,10 @@
         script.dataset.loaded = "true";
         resolve();
       },{once:true});
-      script.addEventListener("error",() => reject(new Error("Gagal memuat pustaka PDF.")),{once:true});
+      script.addEventListener("error",() => {
+        script.remove();
+        reject(new Error("Gagal memuat pustaka PDF."));
+      },{once:true});
       document.head.appendChild(script);
     });
   }
@@ -192,8 +238,8 @@
     doc.text("PP",left + 6,21.7,{align:"center"});
 
     doc.setTextColor(...C.text);
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(14);
+    doc.setFont("times","bold");
+    doc.setFontSize(17);
     doc.text("Profil Pola Pikir MI",left + 17,19);
 
     doc.setFont("helvetica","normal");
@@ -206,7 +252,7 @@
     doc.setTextColor(116,88,0);
     doc.setFont("helvetica","bold");
     doc.setFontSize(7.5);
-    doc.text("NILAI 0–100",pageWidth - right - 16,21.2,{align:"center"});
+    doc.text("NILAI 0-100",pageWidth - right - 16,21.2,{align:"center"});
 
     doc.setDrawColor(...C.line);
     doc.line(left,33,pageWidth-right,33);
@@ -228,8 +274,8 @@
       ["Tanggal Pengisian",formatDate(data.createdAt)]
     ];
 
-    meta.forEach(([label,value],index) => {
-      const rowY = y + index * 6.6;
+    meta.forEach(([label,value]) => {
+      const rowY = y;
       doc.setFont("helvetica","bold");
       doc.setFontSize(7.2);
       doc.setTextColor(...C.muted);
@@ -237,10 +283,12 @@
 
       doc.setFont("helvetica","normal");
       doc.setTextColor(...C.text);
-      doc.text(safe(value),55,rowY);
+      const lines = doc.splitTextToSize(safe(value),pageWidth-right-57);
+      doc.text(lines,57,rowY);
+      y += Math.max(6.6,lines.length * 3.5 + 2.5);
     });
 
-    y += meta.length * 6.6 + 6;
+    y += 6;
 
     doc.setFillColor(...C.soft);
     doc.setDrawColor(...C.line);
@@ -277,6 +325,34 @@
 
     y += 40;
 
+    if(data.profile){
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(...C.text);
+      doc.text("Kecenderungan Enam Mindset",left,y);
+      y += 5;
+      doc.autoTable({
+        startY:y,
+        head:[["Mindset","Hasil","Dasar"]],
+        body:data.profile.tendencies.map(item => [item.label,item.percent + "%",item.count + " soal" + (item.sufficient ? "" : "*")]),
+        margin:{left,right,top:18,bottom:18},
+        theme:"plain",
+        styles:{font:"helvetica",fontSize:7.5,textColor:C.text,lineColor:C.line,lineWidth:{bottom:.15},cellPadding:1.8},
+        headStyles:{fillColor:C.green,textColor:C.white,fontStyle:"bold"},
+        alternateRowStyles:{fillColor:C.soft},
+        columnStyles:{0:{cellWidth:105},1:{cellWidth:35,halign:"center"},2:{cellWidth:38,halign:"center"}}
+      });
+      y = doc.lastAutoTable.finalY + 5;
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(7);
+      doc.setTextColor(...C.muted);
+      const profileNote = "Paling menonjol: " + (data.profile.leading.length ? data.profile.leading.map(item => item.label).join(", ") : "belum ada aspek yang lebih menonjol") + ". *Satu soal = indikasi awal. Hasil ini bahan refleksi, bukan diagnosis.";
+      const profileLines = doc.splitTextToSize(profileNote,contentWidth);
+      doc.text(profileLines,left,y);
+      y += profileLines.length * 3.5 + 5;
+      if(y > 257){doc.addPage();y = 22;}
+    }
+
     doc.setFont("helvetica","bold");
     doc.setFontSize(10.5);
     doc.setTextColor(...C.text);
@@ -286,23 +362,23 @@
 
     const body = data.answers.map((answer,index) => [
       String(answer.number ?? index + 1),
-      safe(answer.question),
+      safe(answer.question) + (data.profile ? "\n" + (window.PolaPikirInstruments.dimensions.find(item => item.id === answer.dimension)?.label || "") : ""),
       safe(answer.answerLabel),
-      String(itemScore(data.participantType,data.phase,index,answer.answerIndex))
+      formatPoints(itemPoints(data.participantType,data.phase,index,answer.answerIndex,data.instrumentVersion)) + " / " + formatPoints(itemWeight(data.participantType,data.phase))
     ]);
 
     doc.autoTable({
       startY:y,
-      head:[["No.","Pernyataan","Jawaban","Skor Item"]],
+      head:[["No.","Pernyataan","Jawaban","Poin / Bobot"]],
       body,
       margin:{left,right,top:18,bottom:18},
-      theme:"grid",
+      theme:"plain",
       styles:{
         font:"helvetica",
         fontSize:7.2,
         textColor:C.text,
         lineColor:C.line,
-        lineWidth:.18,
+        lineWidth:{bottom:.15},
         cellPadding:2.25,
         valign:"middle",
         overflow:"linebreak"
@@ -324,14 +400,14 @@
 
     y = doc.lastAutoTable.finalY + 8;
 
-    if(y > 245){
+    if(y > 218){
       doc.addPage();
       y = 25;
     }
 
     doc.setFillColor(...C.greenSoft);
     doc.setDrawColor(215,229,218);
-    doc.roundedRect(left,y,contentWidth,31,4,4,"FD");
+    doc.roundedRect(left,y,contentWidth,35,4,4,"FD");
 
     doc.setFont("helvetica","bold");
     doc.setFontSize(8.3);
@@ -348,32 +424,42 @@
 
     doc.text(raw + "Nilai akhir: " + Math.round(data.score) + " / 100",left + 5,y + 14);
 
-    const note = data.participantType === "student"
-      ? "Catatan: instrumen murid merupakan asesmen reflektif pendidikan yang disesuaikan dengan fase belajar."
-      : "Catatan: hasil digunakan sebagai bahan refleksi pendidikan dan pengembangan praktik belajar.";
+    const note = data.profile
+      ? "Catatan: profil enam mindset merupakan refleksi pendidikan; instrumen ini belum divalidasi secara psikometrik."
+      : data.participantType === "student"
+        ? "Catatan: instrumen murid merupakan asesmen reflektif pendidikan yang disesuaikan dengan fase belajar."
+        : "Catatan: hasil digunakan sebagai bahan refleksi pendidikan dan pengembangan praktik belajar.";
 
     doc.setTextColor(...C.muted);
-    doc.text(doc.splitTextToSize(note,contentWidth - 10),left + 5,y + 21);
+    const weightNote = "Bobot tiap soal = 100 / " + data.answers.length + ". Poin = skor item / skor item maksimum x bobot.";
+    doc.text(doc.splitTextToSize(weightNote,contentWidth - 10),left + 5,y + 20);
+    doc.text("Poin ditampilkan hingga 2 desimal. Nilai akhir dihitung sebelum pembulatan.",left + 5,y + 25);
+    doc.text(doc.splitTextToSize(note,contentWidth - 10),left + 5,y + 30);
 
-    y += 40;
+    y += 44;
 
     doc.setFont("helvetica","bold");
     doc.setFontSize(7.5);
     doc.setTextColor(...C.text);
-    doc.text("Pengawas Bina",left,y);
+    doc.text("Pengawas Bina",pageWidth-right,y,{align:"right"});
 
     doc.setFont("helvetica","normal");
-    doc.text("Zainal Arifin, S.Ag., M.M",left,y + 5);
+    doc.text("Zainal Arifin, S.Ag., M.M",pageWidth-right,y + 5,{align:"right"});
     doc.setTextColor(...C.muted);
     doc.setFontSize(6.8);
-    doc.text("RA dan MI",left,y + 10);
+    doc.text("RA dan MI",pageWidth-right,y + 10,{align:"right"});
 
-    doc.text("Laporan dibuat: " + formatDate(new Date()),pageWidth - right,y + 5,{align:"right"});
+    doc.text("Laporan dibuat: " + formatDate(new Date()),left,y + 5);
 
     const pages = doc.internal.getNumberOfPages();
 
     for(let page = 1; page <= pages; page++){
       doc.setPage(page);
+      doc.setDrawColor(...C.line);
+      doc.setLineWidth(.25);
+      doc.rect(7,5,196,289);
+      doc.setLineWidth(.15);
+      doc.rect(9,7,192,285);
 
       if(page > 1){
         doc.setFont("helvetica","bold");
@@ -405,15 +491,22 @@
   }
 
   async function print(data){
-    await ensurePdfLibraries();
-    const built = buildDoc(data);
-
-    if(typeof built.doc.autoPrint === "function"){
-      built.doc.autoPrint({variant:"non-conform"});
+    const preview = window.open("about:blank","_blank");
+    if(!preview) throw new Error("Izinkan pop-up untuk membuka laporan cetak.");
+    preview.opener = null;
+    preview.document.title = "Menyiapkan laporan";
+    preview.document.body.textContent = "Menyiapkan laporan untuk dicetak…";
+    try{
+      await ensurePdfLibraries();
+      const built = buildDoc(data);
+      if(typeof built.doc.autoPrint === "function") built.doc.autoPrint({variant:"non-conform"});
+      const url = built.doc.output("bloburl");
+      preview.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url),60000);
+    }catch(error){
+      preview.close();
+      throw error;
     }
-
-    const url = built.doc.output("bloburl");
-    window.open(url,"_blank","noopener,noreferrer");
   }
 
   function fromSubmission(row){
@@ -426,6 +519,9 @@
     print,
     fromSubmission,
     itemScore,
+    itemWeight,
+    itemPoints,
+    formatPoints,
     normalize
   };
 })();

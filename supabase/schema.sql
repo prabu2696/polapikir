@@ -39,7 +39,7 @@ create index if not exists submissions_school_created_idx on public.submissions 
 create index if not exists submissions_type_phase_created_idx on public.submissions (participant_type, phase, created_at desc);
 
 create or replace function public.normalize_school_name(input text)
-returns text language plpgsql immutable as $$
+returns text language plpgsql immutable set search_path = '' as $$
 declare v text;
 begin
   v := upper(trim(coalesce(input,'')));
@@ -54,7 +54,7 @@ begin
 end $$;
 
 create or replace function public.prepare_submission()
-returns trigger language plpgsql security invoker as $$
+returns trigger language plpgsql security invoker set search_path = '' as $$
 declare
   i integer;
   a integer;
@@ -66,7 +66,9 @@ begin
   new.participant_name := upper(regexp_replace(trim(new.participant_name), '\s+', ' ', 'g'));
   new.school_raw := trim(new.school_raw);
   new.school_normalized := public.normalize_school_name(new.school_raw);
-  new.instrument_version := '2026.09-v3';
+  if new.instrument_version is null or new.instrument_version not in ('2026.09-v3','2026.09-v4') then
+    raise exception 'Versi instrumen tidak dikenali';
+  end if;
 
   if new.participant_type = 'teacher' then
     new.grade := null;
@@ -87,7 +89,22 @@ begin
   for i in 0..expected_count-1 loop
     q := i + 1;
     a := (new.answers->i->>'answerIndex')::integer;
-    if new.participant_type = 'teacher' then
+    if a is null then raise exception 'Jawaban % belum diisi', q; end if;
+    if new.instrument_version = '2026.09-v4' then
+      if new.participant_type = 'teacher' then
+        if a < 0 or a > 3 then raise exception 'Pilihan jawaban guru tidak valid'; end if;
+        if q = any(array[9,14]) then raw := raw + a; else raw := raw + (3-a); end if;
+      elsif new.phase = 'A' then
+        if a < 0 or a > 2 then raise exception 'Pilihan jawaban Fase A tidak valid'; end if;
+        raw := raw + (2-a);
+      elsif new.phase = 'B' then
+        if a < 0 or a > 3 then raise exception 'Pilihan jawaban Fase B tidak valid'; end if;
+        if q = any(array[8,15]) then raw := raw + a; else raw := raw + (3-a); end if;
+      else
+        if a < 0 or a > 3 then raise exception 'Pilihan jawaban Fase C tidak valid'; end if;
+        if q = 14 then raw := raw + a; else raw := raw + (3-a); end if;
+      end if;
+    elsif new.participant_type = 'teacher' then
       if a < 0 or a > 3 then raise exception 'Pilihan jawaban guru tidak valid'; end if;
       if q = any(array[1,4,7,8,11,12,14,16,17,20]) then raw := raw + a; else raw := raw + (3-a); end if;
     elsif new.phase = 'A' then
@@ -107,7 +124,9 @@ begin
   new.score := round(raw * 100.0 / raw_max)::integer;
   new.max_score := 100;
 
-  if new.participant_type = 'teacher' then
+  if new.instrument_version = '2026.09-v4' then
+    new.category := 'Profil enam mindset';
+  elsif new.participant_type = 'teacher' then
     new.category := case when raw <= 20 then 'Pola Pikir Tetap (Fixed Mindset)' when raw <= 33 then 'Pola Pikir Tetap Bertumbuh (Fixed-Growth Mindset)' when raw <= 44 then 'Pola Pikir Bertumbuh Tetap (Growth-Fixed Mindset)' else 'Pola Pikir Bertumbuh (Growth Mindset)' end;
   else
     new.category := case when new.score < 40 then 'Perlu Dukungan untuk Bertumbuh' when new.score < 70 then 'Pola Pikir Bertumbuh Mulai Berkembang' when new.score < 85 then 'Pola Pikir Bertumbuh Berkembang Baik' else 'Pola Pikir Bertumbuh Berkembang Sangat Baik' end;

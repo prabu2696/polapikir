@@ -25,6 +25,8 @@ function switchAdmin(id){
   });
 
   target.classList.add("active");
+  const heading = target.querySelector("h1");
+  if(heading){ heading.tabIndex = -1; heading.focus({preventScroll:true}); }
   window.scrollTo({top:0,behavior:"auto"});
 
   if(!adminReducedMotion()){
@@ -123,6 +125,7 @@ passwordToggle.addEventListener("click",() => {
 
 $("#loginForm").addEventListener("submit",async event => {
   event.preventDefault();
+  $("#loginError").hidden = true;
 
   if(!configured()){
     adminToast("Konfigurasi Supabase belum lengkap.");
@@ -132,7 +135,8 @@ $("#loginForm").addEventListener("submit",async event => {
   const username = $("#adminUsername").value.trim().toLowerCase();
 
   if(username !== String(CFG.adminUsername).toLowerCase()){
-    adminToast("Username atau password tidak valid.");
+    $("#loginError").hidden = false;
+    $("#loginError").textContent = "Username atau password tidak valid.";
     return;
   }
 
@@ -168,7 +172,10 @@ $("#loginForm").addEventListener("submit",async event => {
     await openDashboard();
   }catch(error){
     console.error(error);
-    adminToast("Username atau password tidak valid.");
+    $("#loginError").hidden = false;
+    $("#loginError").textContent = error.status === 400 || error.status === 401
+      ? "Username atau password tidak valid. Periksa kembali lalu coba lagi."
+      : "Belum dapat terhubung. Periksa koneksi lalu coba lagi.";
   }finally{
     button.disabled = false;
     button.innerHTML = originalText;
@@ -191,8 +198,7 @@ $("#refreshBtn").addEventListener("click",async () => {
   const button = $("#refreshBtn");
   button.disabled = true;
   try{
-    await loadRows();
-    adminToast("Data sudah diperbarui.");
+    if(await loadRows()) adminToast("Data sudah diperbarui.");
   }finally{
     button.disabled = false;
   }
@@ -207,10 +213,19 @@ function scheduleRender(){
 $("#searchInput").addEventListener("input",scheduleRender);
 $("#typeFilter").addEventListener("change",render);
 $("#phaseFilter").addEventListener("change",render);
+$("#resetFilters").addEventListener("click",() => {
+  $("#searchInput").value = "";
+  $("#typeFilter").value = "";
+  $("#phaseFilter").value = "";
+  render();
+  $("#searchInput").focus();
+});
 $("#closeDetail").addEventListener("click",() => $("#detailDialog").close());
 
 $("#detailDialog").addEventListener("click",event => {
-  if(event.target === $("#detailDialog")) $("#detailDialog").close();
+  const dialog = $("#detailDialog");
+  const box = dialog.getBoundingClientRect();
+  if(event.target === dialog && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) dialog.close();
 });
 
 async function openDashboard(){
@@ -220,6 +235,12 @@ async function openDashboard(){
 }
 
 async function loadRows(){
+  const status = $("#dataStatus");
+  status.hidden = false;
+  status.className = "data-status";
+  status.textContent = "Memuat hasil asesmen…";
+  $("#schoolGroups").setAttribute("aria-busy", "true");
+  $("#emptyState").hidden = true;
   try{
     const pageSize = 500;
     const all = [];
@@ -237,12 +258,14 @@ async function loadRows(){
       );
 
       all.push(...batch);
-      if(batch.length < pageSize || all.length >= 5000) break;
+      if(batch.length < pageSize) break;
       offset += pageSize;
     }
 
     rows = all;
     render();
+    status.hidden = true;
+    return true;
   }catch(error){
     console.error(error);
     if(error?.status === 401){
@@ -253,9 +276,13 @@ async function loadRows(){
       adminToast("Sesi admin berakhir. Silakan masuk kembali.");
       return;
     }
-    adminToast(error?.name === "AbortError"
-      ? "Koneksi terlalu lama. Coba muat ulang."
-      : "Gagal memuat data admin.");
+    status.className = "data-status error";
+    status.textContent = rows.length
+      ? "Pembaruan gagal. Data sebelumnya masih tampil. Tekan Muat ulang untuk mencoba lagi."
+      : "Hasil belum dapat dimuat. Periksa koneksi, lalu tekan Muat ulang.";
+    return false;
+  }finally{
+    $("#schoolGroups").setAttribute("aria-busy", "false");
   }
 }
 
@@ -290,6 +317,7 @@ function render(){
   });
 
   const wrapper = $("#schoolGroups");
+  $("#resultCount").textContent = `${filtered.length} hasil ditampilkan dari ${rows.length} hasil tersimpan`;
   wrapper.innerHTML = "";
 
   const fragment = document.createDocumentFragment();
@@ -302,26 +330,26 @@ function render(){
 
       const rowsHtml = items.map(row => {
         const participantLabel = row.participant_type === "student" ? "Murid MI" : "Guru MI";
-        const phaseLabel = row.phase ? "Fase " + row.phase : "—";
-        const score = row.score ?? "—";
+        const phaseLabel = row.phase ? "Fase " + row.phase : "-";
+        const score = row.score ?? "-";
         const created = formatDate(row.created_at);
 
         return `
           <tr>
-            <td data-label="Nama"><strong>${escapeHtml(row.participant_name || "—")}</strong></td>
+            <td data-label="Nama"><strong>${escapeHtml(row.participant_name || "-")}</strong></td>
             <td data-label="Peserta"><span class="badge ${row.participant_type === "student" ? "student" : ""}">${participantLabel}</span></td>
             <td data-label="Fase">${phaseLabel}</td>
             <td data-label="Nilai"><strong>${score}</strong> / 100</td>
-            <td data-label="Kategori">${escapeHtml(row.category || "—")}</td>
+            <td data-label="Kategori">${escapeHtml(row.category || "-")}</td>
             <td data-label="Waktu">${created}</td>
-            <td data-label="Aksi"><button class="detail-btn" data-id="${row.id}" type="button">Lihat Detail</button></td>
+            <td data-label="Aksi"><button class="detail-btn" data-id="${escapeHtml(row.id)}" type="button" aria-label="Lihat detail ${escapeHtml(row.participant_name)}">Lihat detail</button></td>
           </tr>
         `;
       }).join("");
 
       card.innerHTML = `
         <div class="school-head">
-          <h2>${escapeHtml(school)}</h2>
+          <h3>${escapeHtml(school)}</h3>
           <span>${items.length} data</span>
         </div>
 
@@ -357,21 +385,23 @@ function openDetail(id){
   const row = rows.find(item => String(item.id) === String(id));
   if(!row) return;
 
-  const answers = Array.isArray(row.answers) ? row.answers : [];
   const reportData = window.PolaPikirReport.fromSubmission(row);
+  const answers = reportData.answers;
 
   $("#detailContent").innerHTML = `
     <span class="eyebrow">DETAIL HASIL</span>
-    <h2>${escapeHtml(row.participant_name || "—")}</h2>
+    <h2 id="detailTitle">${escapeHtml(row.participant_name || "-")}</h2>
 
     <div class="detail-summary">
-      <div><span>Sekolah</span><strong>${escapeHtml(row.school_normalized || "—")}</strong></div>
+      <div><span>Sekolah</span><strong>${escapeHtml(row.school_normalized || "-")}</strong></div>
       <div><span>Peserta</span><strong>${row.participant_type === "student" ? "Murid MI" : "Guru MI"}</strong></div>
-      <div><span>Nilai</span><strong>${row.score ?? "—"} / 100</strong></div>
-      <div><span>Fase / Kelas</span><strong>${row.phase ? "Fase " + row.phase + " / Kelas " + row.grade : "—"}</strong></div>
-      <div><span>Kategori</span><strong>${escapeHtml(row.category || "—")}</strong></div>
+      <div><span>Nilai</span><strong>${row.score ?? "-"} / 100</strong></div>
+      <div><span>Fase / Kelas</span><strong>${row.phase ? "Fase " + row.phase + " / Kelas " + row.grade : "-"}</strong></div>
+      <div><span>Kategori</span><strong>${escapeHtml(row.category || "-")}</strong></div>
       <div><span>Waktu</span><strong>${formatDate(row.created_at)}</strong></div>
     </div>
+
+    ${reportData.profile ? `<section class="detail-mindsets" aria-label="Kecenderungan enam mindset"><h3>Kecenderungan mindset</h3><p>Paling menonjol: ${escapeHtml(reportData.profile.leading.length ? reportData.profile.leading.map(item => item.label).join(" · ") : "belum ada aspek yang lebih menonjol")}</p><div>${reportData.profile.tendencies.map(item => `<span><strong>${escapeHtml(item.label)}</strong><small>${item.percent}% · ${item.count} soal${item.sufficient ? "" : " · indikasi awal"}</small></span>`).join("")}</div><small>Hasil refleksi pendidikan, bukan diagnosis atau label tetap.</small></section>` : ""}
 
     <div class="detail-report-actions">
       <button class="primary-btn" id="downloadAdminPdf" type="button">Unduh PDF</button>
@@ -383,10 +413,11 @@ function openDetail(id){
         <article class="answer-item">
           <small>Pertanyaan ${answer.number ?? index + 1}</small>
           <p>${escapeHtml(answer.question || "")}</p>
+          ${reportData.profile ? `<small>${escapeHtml(window.PolaPikirInstruments.dimensions.find(item => item.id === answer.dimension)?.label || "")}</small>` : ""}
           <strong>
-            Jawaban: ${escapeHtml(answer.answerLabel || "—")}
+            Jawaban: ${escapeHtml(answer.answerLabel || "-")}
             &nbsp; • &nbsp;
-            Skor item: ${window.PolaPikirReport.itemScore(row.participant_type,row.phase,index,answer.answerIndex)}
+            Poin: ${window.PolaPikirReport.formatPoints(window.PolaPikirReport.itemPoints(row.participant_type,row.phase,index,answer.answerIndex,row.instrument_version))} / ${window.PolaPikirReport.formatPoints(window.PolaPikirReport.itemWeight(row.participant_type,row.phase))}
           </strong>
         </article>
       `).join("")}
@@ -430,7 +461,7 @@ function openDetail(id){
 
 function formatDate(value){
   const date = new Date(value);
-  if(Number.isNaN(date.getTime())) return "—";
+  if(Number.isNaN(date.getTime())) return "-";
 
   return date.toLocaleString("id-ID",{
     day:"2-digit",
