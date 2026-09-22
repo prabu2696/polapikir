@@ -176,13 +176,6 @@
         1:{cellWidth:103},
         2:{cellWidth:45},
         3:{cellWidth:22,halign:"center"}
-      },
-      didDrawPage:()=>{
-        const page=doc.internal.getNumberOfPages();
-        doc.setDrawColor(...BRAND.line);doc.line(left,286,width-right,286);
-        doc.setFont("helvetica","normal");doc.setFontSize(6.8);doc.setTextColor(...BRAND.muted);
-        doc.text("Develoved by: Prabu26.dev",left,291);
-        doc.text("Halaman "+page,width-right,291,{align:"right"});
       }
     });
 
@@ -206,6 +199,20 @@
     doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("Zainal Arifin, S.Ag., M.M",left,y+5);
     doc.setFontSize(7);doc.setTextColor(...BRAND.muted);doc.text("RA dan MI",left,y+10);
     doc.text("Laporan dibuat: "+fmtDate(new Date()),width-right,y+5,{align:"right"});
+
+    const pageCount=doc.internal.getNumberOfPages();
+    for(let page=1;page<=pageCount;page++){
+      doc.setPage(page);
+      if(page>1){
+        doc.setFont("helvetica","bold");doc.setFontSize(7);doc.setTextColor(...BRAND.muted);
+        doc.text("PROFIL POLA PIKIR MI - RANGKUMAN HASIL",left,10);
+        doc.setDrawColor(...BRAND.line);doc.line(left,13,width-right,13);
+      }
+      doc.setDrawColor(...BRAND.line);doc.line(left,286,width-right,286);
+      doc.setFont("helvetica","normal");doc.setFontSize(6.8);doc.setTextColor(...BRAND.muted);
+      doc.text("Develoved by: Prabu26.dev",left,291);
+      doc.text("Halaman "+page+" / "+pageCount,width-right,291,{align:"right"});
+    }
 
     return {doc,data:d};
   }
