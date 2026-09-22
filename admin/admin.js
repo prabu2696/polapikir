@@ -82,7 +82,7 @@ function render(){
       <td><strong>${escapeHtml(r.participant_name||"-")}</strong></td>
       <td><span class="badge ${r.participant_type==="student"?"student":""}">${r.participant_type==="student"?"Murid MI":"Guru MI"}</span></td>
       <td>${r.phase?"Fase "+r.phase:"-"}</td>
-      <td>${r.score??"-"} / ${r.max_score??"-"}</td>
+      <td>${r.score??"-"} / 100</td>
       <td>${escapeHtml(r.category||"-")}</td>
       <td>${new Date(r.created_at).toLocaleString("id-ID")}</td>
       <td><button class="detail-btn" data-id="${r.id}">Detail</button></td>
@@ -101,7 +101,7 @@ function openDetail(id){
   <div class="detail-summary">
     <div><span>Sekolah</span><strong>${escapeHtml(r.school_normalized||"-")}</strong></div>
     <div><span>Peserta</span><strong>${r.participant_type==="student"?"Murid MI":"Guru MI"}</strong></div>
-    <div><span>Skor</span><strong>${r.score??"-"} / ${r.max_score??"-"}</strong></div>
+    <div><span>Skor</span><strong>${r.score??"-"} / 100</strong></div>
     <div><span>Fase / Kelas</span><strong>${r.phase?("Fase "+r.phase+" / Kelas "+r.grade):"-"}</strong></div>
     <div><span>Kategori</span><strong>${escapeHtml(r.category||"-")}</strong></div>
     <div><span>Waktu</span><strong>${new Date(r.created_at).toLocaleString("id-ID")}</strong></div>
