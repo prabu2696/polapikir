@@ -97,16 +97,27 @@ function render(){
 function openDetail(id){
   const r=rows.find(x=>String(x.id)===String(id));if(!r)return;
   const answers=Array.isArray(r.answers)?r.answers:[];
+  const reportData=window.PolaPikirReport.fromSubmission(r);
   $("#detailContent").innerHTML=`<span class="eyebrow">DETAIL HASIL</span><h2>${escapeHtml(r.participant_name||"-")}</h2>
   <div class="detail-summary">
     <div><span>Sekolah</span><strong>${escapeHtml(r.school_normalized||"-")}</strong></div>
     <div><span>Peserta</span><strong>${r.participant_type==="student"?"Murid MI":"Guru MI"}</strong></div>
-    <div><span>Skor</span><strong>${r.score??"-"} / 100</strong></div>
+    <div><span>Nilai</span><strong>${r.score??"-"} / 100</strong></div>
     <div><span>Fase / Kelas</span><strong>${r.phase?("Fase "+r.phase+" / Kelas "+r.grade):"-"}</strong></div>
     <div><span>Kategori</span><strong>${escapeHtml(r.category||"-")}</strong></div>
     <div><span>Waktu</span><strong>${new Date(r.created_at).toLocaleString("id-ID")}</strong></div>
   </div>
-  <div class="answer-list">${answers.map(a=>`<div class="answer-item"><small>Pertanyaan ${a.number}</small><p>${escapeHtml(a.question||"")}</p><strong>Jawaban: ${escapeHtml(a.answerLabel||"-")}</strong></div>`).join("")}</div>`;
+  <div class="detail-report-actions">
+    <button class="primary-btn" id="downloadAdminPdf" type="button">Unduh Laporan PDF</button>
+    <button class="secondary-btn" id="printAdminPdf" type="button">Cetak PDF</button>
+  </div>
+  <div class="answer-list">${answers.map((a,i)=>`<div class="answer-item"><small>Pertanyaan ${a.number}</small><p>${escapeHtml(a.question||"")}</p><strong>Jawaban: ${escapeHtml(a.answerLabel||"-")} &nbsp; • &nbsp; Skor item: ${window.PolaPikirReport.itemScore(r.participant_type,r.phase,i,a.answerIndex)}</strong></div>`).join("")}</div>`;
+  $("#downloadAdminPdf").addEventListener("click",()=>{
+    try{window.PolaPikirReport.download(reportData)}catch(err){adminToast("Gagal membuat PDF laporan.");}
+  });
+  $("#printAdminPdf").addEventListener("click",()=>{
+    try{window.PolaPikirReport.print(reportData)}catch(err){adminToast("Gagal membuka PDF untuk dicetak.");}
+  });
   $("#detailDialog").showModal();
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
