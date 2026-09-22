@@ -122,7 +122,7 @@ const teacherCategories = [
 
 const state = {
   role:null,name:"",schoolRaw:"",schoolNormalized:"",grade:null,phase:null,
-  questions:[],answers:[],mobileIndex:0,clientSubmissionId:null,lastPayload:null
+  questions:[],answers:[],mobileIndex:0,clientSubmissionId:null,lastPayload:null,lastResult:null,reportCreatedAt:null
 };
 
 const $ = s => document.querySelector(s);
@@ -187,6 +187,8 @@ $("#identityForm").addEventListener("submit",e=>{
   state.mobileIndex=0;
   state.clientSubmissionId=makeId();
   state.lastPayload=null;
+  state.lastResult=null;
+  state.reportCreatedAt=null;
   renderAssessment();
   showView("#assessmentView");
 });
@@ -315,7 +317,10 @@ $("#assessmentForm").addEventListener("submit",e=>{
     document.querySelector(`.question-card[data-index="${missing}"]`).scrollIntoView({behavior:"smooth",block:"center"});return;
   }
   const result=calculateResult();
-  const payload=makePayload();state.lastPayload=payload;
+  const payload=makePayload();
+  state.lastPayload=payload;
+  state.lastResult=result;
+  state.reportCreatedAt=new Date().toISOString();
   renderResult(result);
   sendToAdmin(payload);
 });
@@ -332,3 +337,38 @@ function renderResult(result){
   setSaveState("pending","Menyiapkan pengiriman hasil...");
   showView("#resultView");
 }
+
+
+function buildClientReportData(){
+  if(!state.lastResult) return null;
+  const labels=getAnswerLabels();
+  return {
+    participantType:state.role,
+    participantName:state.name,
+    school:state.schoolNormalized,
+    grade:state.grade,
+    phase:state.phase,
+    answers:state.questions.map((question,i)=>({
+      number:i+1,
+      question,
+      answerIndex:state.answers[i],
+      answerLabel:labels[state.answers[i]]
+    })),
+    score:state.lastResult.score,
+    rawScore:state.lastResult.rawScore,
+    rawMaxScore:state.lastResult.rawMaxScore,
+    category:state.lastResult.category,
+    explanation:state.lastResult.explanation,
+    createdAt:state.reportCreatedAt||new Date().toISOString()
+  };
+}
+$("#downloadPdfBtn").addEventListener("click",()=>{
+  const data=buildClientReportData();
+  if(!data){toast("Hasil belum tersedia.");return}
+  try{window.PolaPikirReport.download(data)}catch(err){toast("Gagal membuat PDF. Muat ulang halaman dan coba lagi.")}
+});
+$("#printPdfBtn").addEventListener("click",()=>{
+  const data=buildClientReportData();
+  if(!data){toast("Hasil belum tersedia.");return}
+  try{window.PolaPikirReport.print(data)}catch(err){toast("Gagal membuka PDF untuk dicetak.")}
+});
