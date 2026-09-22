@@ -2,7 +2,7 @@
 
 Web asesmen responsif untuk **Guru MI** dan **Murid MI (Fase A–C)**.
 
-**Developed by: Prabu26.dev**
+**Develoved by: Prabu26.dev**
 
 ## URL
 
