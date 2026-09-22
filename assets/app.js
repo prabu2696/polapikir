@@ -152,10 +152,20 @@ const state = {
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 
+function prefersReducedMotion(){
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+}
+
+function smoothBehavior(){
+  return prefersReducedMotion() ? "auto" : "smooth";
+}
+
 function showView(id){
-  $$(".view").forEach(view => view.classList.remove("active"));
-  $(id).classList.add("active");
-  window.scrollTo({top:0,behavior:"smooth"});
+  $(".view").forEach(view => view.classList.remove("active"));
+  const target = $(id);
+  if(!target) return;
+  target.classList.add("active");
+  window.scrollTo({top:0,behavior:smoothBehavior()});
 }
 
 function normalizePersonName(value){
@@ -165,10 +175,11 @@ function normalizePersonName(value){
 function normalizeSchool(value){
   let school = value.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
   school = school.replace(/[._,/\\-]+/g," ");
-  school = school.replace(/\bMADRASAH IBTIDAIYAH\b/g,"MI");
-  school = school.replace(/\bRAUDHATUL ATHFAL\b/g,"RA");
+  school = school.replace(/\bMADRASAH\s+IBTIDAIYAH\b/g,"MI");
+  school = school.replace(/\bRAUDHATUL\s+ATHFAL\b/g,"RA");
+  school = school.replace(/^M\s+I\b/,"MI").replace(/^R\s+A\b/,"RA");
   school = school.replace(/\s+/g," ").trim();
-  school = school.replace(/^RA\s+AL\s+/,"RA AL").replace(/^MI\s+AL\s+/,"MI AL");
+  school = school.replace(/^(RA|MI)\s+AL\s+/,"$1 AL");
   return school;
 }
 
@@ -362,7 +373,7 @@ function setMobileQuestion(index){
 
   const active = document.querySelector(`.question-card[data-index="${state.mobileIndex}"]`);
   if(active && window.innerWidth <= 840){
-    active.scrollIntoView({behavior:"smooth",block:"center"});
+    active.scrollIntoView({behavior:smoothBehavior(),block:"center"});
   }
 }
 
@@ -526,7 +537,7 @@ $("#assessmentForm").addEventListener("submit",event => {
 
     const missingCard = document.querySelector(`.question-card[data-index="${missingIndex}"]`);
     if(missingCard){
-      missingCard.scrollIntoView({behavior:"smooth",block:"center"});
+      missingCard.scrollIntoView({behavior:smoothBehavior(),block:"center"});
     }
     return;
   }

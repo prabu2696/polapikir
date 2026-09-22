@@ -93,7 +93,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
   box-shadow:0 8px 22px rgba(23,107,54,.08);
   flex:0 0 auto
 }
-.brand-logo{width:34px;height:34px;object-fit:contain}
+.brand-logo{width:34px;height:34px;object-fit:contain;display:block}
 .brand-copy{min-width:0}
 .brand strong,.brand small{display:block}
 .brand strong{
@@ -121,9 +121,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 }
 
 .app-shell{width:min(1120px,calc(100% - 28px));margin:0 auto 74px}
-.view{display:none;opacity:0;transform:translateY(12px)}
-.view.active{display:block;animation:viewIn .48s cubic-bezier(.22,1,.36,1) forwards}
-@keyframes viewIn{to{opacity:1;transform:translateY(0)}}
+.view{display:none}
+.view.active{display:block;opacity:1;transform:none}
+@keyframes viewIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:no-preference){
+  .view.active{animation:viewIn .48s cubic-bezier(.22,1,.36,1)}
+}
 
 .hero{
   max-width:820px;
@@ -142,7 +145,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{
   box-shadow:var(--shadow-md);
   animation:logoFloat 5s ease-in-out infinite
 }
-.hero-logo{width:88px;height:88px;object-fit:contain}
+.hero-logo{width:88px;height:88px;object-fit:contain;display:block}
 @keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .eyebrow{
   display:inline-flex;

@@ -82,3 +82,10 @@ Client memiliki tombol **Unduh PDF** dan **Cetak** setelah hasil keluar. Admin m
 ## Catatan metodologis
 
 Pertanyaan Murid MI merupakan instrumen reflektif pendidikan yang disusun khusus per fase. Instrumen ini bukan tes psikologis klinis atau instrumen psikometrik yang sudah tervalidasi.
+
+
+### Stabilitas tampilan
+
+- Halaman aktif tetap terlihat ketika perangkat memakai pengaturan **Reduce motion**.
+- Asset CSS/JavaScript memakai version query agar pembaruan GitHub Pages tidak tertahan cache browser.
+- Logo client memakai versi vektor lambang Kementerian Agama yang sama dengan logo referensi agar tetap tajam pada layar Retina/HiDPI.

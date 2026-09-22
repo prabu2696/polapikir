@@ -11,8 +11,11 @@
   stroke-linecap:round;stroke-linejoin:round
 }
 .admin-shell{width:min(1160px,calc(100% - 28px));margin:0 auto 80px}
-.admin-view{display:none;opacity:0;transform:translateY(10px)}
-.admin-view.active{display:block;animation:viewIn .48s cubic-bezier(.22,1,.36,1) forwards}
+.admin-view{display:none}
+.admin-view.active{display:block;opacity:1;transform:none}
+@media(prefers-reduced-motion:no-preference){
+  .admin-view.active{animation:viewIn .48s cubic-bezier(.22,1,.36,1)}
+}
 
 .login-wrap{
   max-width:890px;

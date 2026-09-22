@@ -41,11 +41,13 @@ returns text language plpgsql immutable as $$
 declare v text;
 begin
   v := upper(trim(coalesce(input,'')));
-  v := regexp_replace(v, '[._,/\\-]+', ' ', 'g');
-  v := regexp_replace(v, '\\s+', ' ', 'g');
-  v := regexp_replace(v, '\\mMADRASAH IBTIDAIYAH\\M', 'MI', 'g');
-  v := regexp_replace(v, '\\mRAUDHATUL ATHFAL\\M', 'RA', 'g');
-  v := regexp_replace(v, '^(RA|MI) AL\\s+', '\\1 AL', 'g');
+  v := regexp_replace(v, '[._,/ -]+', ' ', 'g');
+  v := regexp_replace(v, '\s+', ' ', 'g');
+  v := regexp_replace(v, '\mMADRASAH\s+IBTIDAIYAH\M', 'MI', 'g');
+  v := regexp_replace(v, '\mRAUDHATUL\s+ATHFAL\M', 'RA', 'g');
+  v := regexp_replace(v, '^(M\s+I|MI)\s+', 'MI ', 'g');
+  v := regexp_replace(v, '^(R\s+A|RA)\s+', 'RA ', 'g');
+  v := regexp_replace(v, '^(RA|MI)\s+AL\s+', '\1 AL', 'g');
   return trim(v);
 end $$;
 
@@ -59,7 +61,7 @@ declare
   raw integer := 0;
   raw_max integer := 0;
 begin
-  new.participant_name := upper(regexp_replace(trim(new.participant_name), '\\s+', ' ', 'g'));
+  new.participant_name := upper(regexp_replace(trim(new.participant_name), '\s+', ' ', 'g'));
   new.school_raw := trim(new.school_raw);
   new.school_normalized := public.normalize_school_name(new.school_raw);
   new.instrument_version := '2026.09-v3';
