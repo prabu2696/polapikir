@@ -142,27 +142,27 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 }
 
 .hero{
-  max-width:940px;
-  margin:72px auto 44px;
+  max-width:900px;
+  margin:62px auto 38px;
   text-align:center
 }
 .hero h1{
-  max-width:900px;
-  margin:0 auto 20px;
-  font-size:clamp(2.75rem,5.6vw,4.35rem);
-  line-height:1.05;
-  letter-spacing:-.045em;
+  max-width:840px;
+  margin:0 auto 18px;
+  font-size:clamp(2.35rem,4.8vw,3.7rem);
+  line-height:1.08;
+  letter-spacing:-.04em;
   font-weight:800;
   text-wrap:balance
 }
 .hero-line{display:block}
 .hero-line-accent{color:var(--green)}
 .hero p{
-  max-width:760px;
+  max-width:700px;
   margin:0 auto;
   color:var(--muted);
-  font-size:clamp(1rem,1.6vw,1.125rem);
-  line-height:1.7;
+  font-size:clamp(.9375rem,1.35vw,1.0625rem);
+  line-height:1.65;
   text-wrap:balance
 }
 
@@ -175,12 +175,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 }
 .role-card{
   position:relative;
-  min-height:144px;
+  min-height:132px;
   display:grid;
-  grid-template-columns:60px minmax(0,1fr) 24px;
+  grid-template-columns:56px minmax(0,1fr) 22px;
   align-items:center;
-  gap:18px;
-  padding:26px;
+  gap:16px;
+  padding:22px;
   overflow:hidden;
   color:var(--text);
   text-decoration:none;
@@ -198,8 +198,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 .role-card:active{transform:translate3d(0,0,0)}
 .role-card:before{display:none}
 .role-symbol{
-  width:60px;
-  height:60px;
+  width:56px;
+  height:56px;
   display:grid;
   place-items:center;
   border-radius:18px;
@@ -208,8 +208,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   border:1px solid #d7eadb
 }
 .role-symbol svg{
-  width:28px;
-  height:28px;
+  width:26px;
+  height:26px;
   fill:none;
   stroke:currentColor;
   stroke-width:1.7;
@@ -224,25 +224,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 }
 .role-meta{
   color:var(--gold);
-  font-size:.75rem;
+  font-size:.6875rem;
   line-height:1.2;
   font-weight:800;
   letter-spacing:.08em
 }
 .role-content strong{
-  font-size:1.5rem;
+  font-size:1.375rem;
   line-height:1.2;
   font-weight:780;
   letter-spacing:-.025em
 }
 .role-content>span:last-child{
   color:var(--muted);
-  font-size:.9375rem;
+  font-size:.875rem;
   line-height:1.55
 }
 .role-chevron{
   color:#8a958d;
-  font-size:2rem;
+  font-size:1.75rem;
   line-height:1;
   transition:transform .18s var(--ease),color .18s ease
 }
@@ -258,17 +258,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 .feature-strip article{
   min-width:0;
   display:grid;
-  grid-template-columns:46px minmax(0,1fr);
+  grid-template-columns:42px minmax(0,1fr);
   align-items:center;
-  gap:13px;
-  padding:16px;
+  gap:12px;
+  padding:14px 15px;
   background:#fff;
   border:1px solid var(--line);
   border-radius:17px
 }
 .feature-icon{
-  width:46px;
-  height:46px;
+  width:42px;
+  height:42px;
   display:flex!important;
   align-items:center;
   justify-content:center;
@@ -276,7 +276,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   border-radius:13px;
   background:var(--surface-3);
   color:var(--green);
-  font-size:.8125rem;
+  font-size:.6875rem;
   line-height:1;
   font-weight:800;
   font-variant-numeric:tabular-nums
@@ -284,25 +284,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 .feature-strip article>div{min-width:0}
 .feature-strip strong,.feature-strip article div span{display:block}
 .feature-strip strong{
-  font-size:.9375rem;
+  font-size:.875rem;
   line-height:1.35;
   font-weight:740
 }
 .feature-strip article div span{
   margin-top:4px;
   color:var(--muted);
-  font-size:.8125rem;
+  font-size:.75rem;
   line-height:1.45
 }
 
-.flow-shell{max-width:760px;margin:52px auto 0}
+.flow-shell{max-width:720px;margin:46px auto 0}
 .panel{
   background:#fff;
   border:1px solid var(--line);
   border-radius:var(--radius-lg);
   box-shadow:var(--shadow)
 }
-.form-panel{padding:clamp(28px,5vw,46px)}
+.form-panel{padding:clamp(26px,4vw,40px)}
 .back-link{
   min-height:44px;
   display:inline-flex;
@@ -313,7 +313,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   color:var(--muted);
   background:transparent;
   border-radius:10px;
-  font-size:.9375rem;
+  font-size:.875rem;
   font-weight:700;
   text-decoration:none;
   cursor:pointer;
@@ -323,7 +323,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 .back-link:hover{color:var(--green);background:var(--green-soft)}
 .back-link.compact{margin:0}
 .eyebrow{
-  min-height:30px;
+  min-height:28px;
   display:inline-flex;
   align-items:center;
   padding:0 11px;
@@ -336,23 +336,23 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   letter-spacing:.1em
 }
 .section-heading h2{
-  margin:14px 0 10px;
-  font-size:clamp(2rem,4vw,2.625rem);
+  margin:12px 0 9px;
+  font-size:clamp(1.75rem,3.4vw,2.2rem);
   line-height:1.12;
   letter-spacing:-.035em;
   font-weight:800
 }
 .section-heading p{
-  margin:0 0 30px;
+  margin:0 0 26px;
   color:var(--muted);
-  font-size:1rem;
-  line-height:1.65
+  font-size:.875rem;
+  line-height:1.6
 }
-.field{display:block;margin:20px 0}
+.field{display:block;margin:17px 0}
 .field>span{
   display:block;
   margin-bottom:9px;
-  font-size:.9375rem;
+  font-size:.875rem;
   line-height:1.35;
   font-weight:720
 }
@@ -365,7 +365,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   border:1px solid var(--line-strong);
   border-radius:14px;
   outline:none;
-  font-size:1rem;
+  font-size:.9375rem;
   transition:border-color .16s ease,box-shadow .16s ease
 }
 .field input::placeholder{color:#929d95}
@@ -385,14 +385,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   display:block;
   margin-top:8px;
   color:var(--muted);
-  font-size:.8125rem;
+  font-size:.75rem;
   line-height:1.45
 }
 .privacy-note{
   display:flex;
-  gap:12px;
-  margin:26px 0;
-  padding:16px;
+  gap:11px;
+  margin:22px 0;
+  padding:14px;
   border:1px solid #dfe8e0;
   border-radius:15px;
   background:var(--surface-2)
@@ -411,19 +411,19 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   font-weight:800
 }
 .privacy-note strong,.privacy-note p{display:block}
-.privacy-note strong{font-size:.875rem}
+.privacy-note strong{font-size:.8125rem}
 .privacy-note p{
   margin:4px 0 0;
   color:var(--muted);
-  font-size:.8125rem;
-  line-height:1.55
+  font-size:.75rem;
+  line-height:1.5
 }
 
 .primary-btn,.secondary-btn,.ghost-btn{
   min-height:50px;
   padding:0 20px;
   border-radius:13px;
-  font-size:.9375rem;
+  font-size:.875rem;
   line-height:1;
   font-weight:740;
   cursor:pointer;
@@ -671,26 +671,26 @@ footer strong{color:var(--muted);font-weight:650}
   .brand-copy small{font-size:.75rem}
   .topbar-badge{display:none}
   .app-shell{width:calc(100% - 20px);margin-bottom:52px}
-  .hero{margin:48px auto 30px}
-  .hero h1{font-size:clamp(2.25rem,11vw,3.1rem);line-height:1.07}
-  .hero p{font-size:1rem;line-height:1.65}
+  .hero{margin:42px auto 28px}
+  .hero h1{font-size:clamp(2rem,9.5vw,2.7rem);line-height:1.09}
+  .hero p{font-size:.9375rem;line-height:1.6}
   .role-grid{grid-template-columns:1fr;gap:12px}
   .role-card{
-    min-height:128px;grid-template-columns:54px minmax(0,1fr) 20px;
-    gap:14px;padding:20px;border-radius:18px
+    min-height:118px;grid-template-columns:50px minmax(0,1fr) 18px;
+    gap:13px;padding:18px;border-radius:18px
   }
-  .role-symbol{width:54px;height:54px;border-radius:16px}
-  .role-symbol svg{width:25px;height:25px}
-  .role-content strong{font-size:1.3125rem}
-  .role-content>span:last-child{font-size:.875rem}
+  .role-symbol{width:50px;height:50px;border-radius:15px}
+  .role-symbol svg{width:23px;height:23px}
+  .role-content strong{font-size:1.1875rem}
+  .role-content>span:last-child{font-size:.8125rem}
   .feature-strip{grid-template-columns:1fr;gap:9px}
-  .feature-strip article{grid-template-columns:46px minmax(0,1fr);padding:14px}
-  .flow-shell{margin-top:30px}
-  .form-panel{padding:24px 20px;border-radius:20px}
-  .section-heading h2{font-size:2rem}
-  .section-heading p{margin-bottom:24px;font-size:.9375rem}
-  .field{margin:18px 0}
-  .field input,.field select{min-height:56px;font-size:1rem}
+  .feature-strip article{grid-template-columns:42px minmax(0,1fr);padding:13px 14px}
+  .flow-shell{margin-top:28px}
+  .form-panel{padding:22px 18px;border-radius:20px}
+  .section-heading h2{font-size:1.75rem}
+  .section-heading p{margin-bottom:22px;font-size:.875rem}
+  .field{margin:16px 0}
+  .field input,.field select{min-height:54px;font-size:1rem}
   .privacy-note{padding:14px}
   .assessment-header{margin:24px 0 14px;align-items:stretch;flex-direction:column}
   .assessment-header .back-link{align-self:flex-start}
@@ -711,9 +711,9 @@ footer strong{color:var(--muted);font-weight:650}
 @media(max-width:420px){
   .brand-copy small{display:none}
   .hero{margin-top:40px}
-  .hero h1{font-size:2.25rem}
-  .role-card{padding:18px 16px}
-  .feature-strip strong{font-size:.9375rem}
+  .hero h1{font-size:2rem}
+  .role-card{padding:16px}
+  .feature-strip strong{font-size:.875rem}
   .question-card{min-height:300px}
   .mobile-nav{grid-template-columns:1fr}
   .mobile-nav>span{grid-row:1;grid-column:1}
