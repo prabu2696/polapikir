@@ -12,10 +12,29 @@ function adminToast(message){
   window.__adminToastTimer = setTimeout(() => element.classList.remove("show"),2600);
 }
 
+function adminReducedMotion(){
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+}
+
 function switchAdmin(id){
-  document.querySelectorAll(".admin-view").forEach(view => view.classList.remove("active"));
-  $(id).classList.add("active");
-  window.scrollTo({top:0,behavior:"smooth"});
+  const target = $(id);
+  if(!target) return;
+
+  document.querySelectorAll(".admin-view").forEach(view => {
+    view.classList.remove("active","admin-entering");
+  });
+
+  target.classList.add("active");
+  window.scrollTo({top:0,behavior:"auto"});
+
+  if(!adminReducedMotion()){
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        target.classList.add("admin-entering");
+        window.setTimeout(() => target.classList.remove("admin-entering"),420);
+      });
+    });
+  }
 }
 
 function baseUrl(){
@@ -382,3 +401,14 @@ function escapeHtml(value){
     await openDashboard();
   }
 })();
+
+
+if("scrollRestoration" in history){
+  history.scrollRestoration = "manual";
+}
+
+window.addEventListener("pageshow",() => {
+  if(!location.hash){
+    window.scrollTo({top:0,left:0,behavior:"auto"});
+  }
+});

@@ -170,7 +170,7 @@ function showView(id){
     return;
   }
 
-  $(".view").forEach(view => {
+  document.querySelectorAll(".view").forEach(view => {
     view.classList.remove("active","view-entering");
   });
 
