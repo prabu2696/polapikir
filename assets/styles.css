@@ -313,7 +313,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   color:var(--muted);
   background:transparent;
   border-radius:10px;
-  font-size:.875rem;
+  font-size:.9375rem;
   font-weight:700;
   text-decoration:none;
   cursor:pointer;
@@ -323,7 +323,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 .back-link:hover{color:var(--green);background:var(--green-soft)}
 .back-link.compact{margin:0}
 .eyebrow{
-  min-height:28px;
+  min-height:30px;
   display:inline-flex;
   align-items:center;
   padding:0 11px;
@@ -335,6 +335,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   font-weight:800;
   letter-spacing:.1em
 }
+#identityView .eyebrow{
+  min-height:28px;
+  font-size:.6875rem
+}
+#identityView .back-link{font-size:.875rem}
+#identityView .primary-btn{font-size:.875rem}
+
 .section-heading h2{
   margin:12px 0 9px;
   font-size:clamp(1.75rem,3.4vw,2.2rem);
@@ -423,7 +430,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   min-height:50px;
   padding:0 20px;
   border-radius:13px;
-  font-size:.875rem;
+  font-size:.9375rem;
   line-height:1;
   font-weight:740;
   cursor:pointer;
