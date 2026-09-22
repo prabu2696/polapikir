@@ -39,3 +39,22 @@ Agar backend benar-benar aktif:
 
 ## Catatan
 Pertanyaan Murid MI adalah instrumen reflektif pendidikan yang disusun khusus per fase. Ini bukan tes psikologis klinis atau instrumen psikometrik tervalidasi.
+
+
+## Laporan PDF
+
+Client dan admin dapat menghasilkan laporan PDF A4 langsung di browser.
+
+Isi laporan:
+- identitas peserta dan sekolah;
+- jenis peserta serta kelas/fase;
+- nilai akhir 0-100 dan kategori;
+- interpretasi hasil;
+- tabel seluruh pernyataan, jawaban, dan skor item;
+- skor mentah serta nilai akhir;
+- tanggal pengisian dan waktu pembuatan laporan;
+- identitas Pengawas Bina;
+- footer `Develoved by: Prabu26.dev` dan nomor halaman.
+
+Client menyediakan tombol **Unduh Laporan PDF** dan **Cetak PDF** setelah nilai tampil.
+Admin menyediakan tombol yang sama pada detail setiap peserta.
