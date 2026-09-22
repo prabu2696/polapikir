@@ -39,7 +39,7 @@ create index if not exists submissions_school_created_idx on public.submissions 
 create index if not exists submissions_type_phase_created_idx on public.submissions (participant_type, phase, created_at desc);
 
 create or replace function public.normalize_school_name(input text)
-returns text language plpgsql immutable as $$
+returns text language plpgsql immutable set search_path = '' as $$
 declare v text;
 begin
   v := upper(trim(coalesce(input,'')));
@@ -54,7 +54,7 @@ begin
 end $$;
 
 create or replace function public.prepare_submission()
-returns trigger language plpgsql security invoker as $$
+returns trigger language plpgsql security invoker set search_path = '' as $$
 declare
   i integer;
   a integer;
