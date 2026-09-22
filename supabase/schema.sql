@@ -1,6 +1,6 @@
 -- Profil Pola Pikir MI
 -- Backend schema for Supabase PostgreSQL
--- Developed by: Prabu26.dev
+-- Develoved by: Prabu26.dev
 
 create extension if not exists pgcrypto;
 
