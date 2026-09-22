@@ -15,99 +15,49 @@
 </head>
 <body class="admin-body">
   <header class="topbar">
-    <a class="brand" href="../">
-      <span class="brand-mark">PP</span>
-      <span><strong>Profil Pola Pikir</strong><small>Panel Administrator</small></span>
-    </a>
+    <a class="brand" href="../"><span class="brand-mark">PP</span><span><strong>Profil Pola Pikir</strong><small>Panel Administrator</small></span></a>
     <button id="logoutBtn" class="admin-logout" hidden>Keluar</button>
   </header>
-
   <main class="admin-shell">
     <section id="loginView" class="admin-view active">
-      <div class="admin-login-layout">
-        <aside class="supervisor-card">
-          <div class="supervisor-photo-wrap">
-            <img src="pengawas-zainal-arifin.jpg" alt="Pengawas Bina Zainal Arifin, S.Ag., M.M" class="supervisor-photo">
-            <span class="supervisor-badge">PENGAWAS BINA</span>
-          </div>
-          <div class="supervisor-copy">
-            <span class="eyebrow">ADMINISTRATOR ASESMEN</span>
-            <h2>Zainal Arifin, S.Ag., M.M</h2>
-            <p>Pengawas Bina RA dan MI</p>
-          </div>
-        </aside>
-
-        <div class="panel admin-login-card">
-          <span class="eyebrow">AKSES TERBATAS</span>
-          <h1>Login Admin</h1>
-          <p>Masuk menggunakan akun Pengawas Bina untuk membuka dashboard hasil asesmen.</p>
-          <form id="loginForm">
-            <label class="field">
-              <span>Username</span>
-              <input id="adminUsername" type="text" autocomplete="username" required placeholder="Masukkan username" autocapitalize="none" spellcheck="false">
-            </label>
-            <label class="field">
-              <span>Password</span>
-              <input id="adminPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
-            </label>
-            <button class="primary-btn" id="loginBtn" type="submit">Masuk ke Dashboard</button>
-          </form>
-          <div class="save-status warn" id="adminConfigWarning" hidden></div>
-        </div>
+      <div class="panel admin-login-card">
+        <span class="eyebrow">AKSES TERBATAS</span>
+        <h1>Login Admin</h1>
+        <p>Masukkan username dan password administrator untuk membuka dashboard hasil asesmen.</p>
+        <form id="loginForm">
+          <label class="field"><span>Username</span><input id="adminUsername" type="text" autocomplete="username" required placeholder="Username" autocapitalize="none" spellcheck="false"></label>
+          <label class="field"><span>Password</span><input id="adminPassword" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
+          <button class="primary-btn" id="loginBtn" type="submit">Masuk ke Dashboard</button>
+        </form>
+        <div class="save-status warn" id="adminConfigWarning" hidden></div>
       </div>
     </section>
 
     <section id="dashboardView" class="admin-view">
       <div class="dashboard-profile">
-        <img src="pengawas-zainal-arifin.jpg" alt="" aria-hidden="true">
-        <div>
-          <span>Pengawas Bina</span>
-          <strong>Zainal Arifin, S.Ag., M.M</strong>
-          <small>RA dan MI</small>
-        </div>
+        <img src="pengawas-zainal-arifin.jpg" alt="Pengawas Bina Zainal Arifin, S.Ag., M.M">
+        <div><span>Pengawas Bina</span><strong>Zainal Arifin, S.Ag., M.M</strong><small>RA dan MI</small></div>
       </div>
-
       <div class="admin-heading">
-        <div>
-          <span class="eyebrow">DASHBOARD PENGAWAS</span>
-          <h1>Hasil Profil Pola Pikir</h1>
-          <p>Data guru dan murid dikelompokkan berdasarkan sekolah yang telah dinormalisasi.</p>
-        </div>
+        <div><span class="eyebrow">DASHBOARD PENGAWAS</span><h1>Hasil Profil Pola Pikir</h1><p>Nilai ditampilkan pada skala 0–100 dan dikelompokkan berdasarkan sekolah.</p></div>
         <button class="secondary-btn" id="refreshBtn">Muat Ulang</button>
       </div>
-
       <div class="stat-grid">
         <article><span>Total Data</span><strong id="statTotal">0</strong></article>
         <article><span>Guru MI</span><strong id="statTeachers">0</strong></article>
         <article><span>Murid MI</span><strong id="statStudents">0</strong></article>
         <article><span>Sekolah</span><strong id="statSchools">0</strong></article>
       </div>
-
       <div class="panel admin-filters">
         <input id="searchInput" type="search" placeholder="Cari nama atau sekolah...">
-        <select id="typeFilter">
-          <option value="">Semua peserta</option>
-          <option value="teacher">Guru MI</option>
-          <option value="student">Murid MI</option>
-        </select>
-        <select id="phaseFilter">
-          <option value="">Semua fase</option>
-          <option value="A">Fase A</option>
-          <option value="B">Fase B</option>
-          <option value="C">Fase C</option>
-        </select>
+        <select id="typeFilter"><option value="">Semua peserta</option><option value="teacher">Guru MI</option><option value="student">Murid MI</option></select>
+        <select id="phaseFilter"><option value="">Semua fase</option><option value="A">Fase A</option><option value="B">Fase B</option><option value="C">Fase C</option></select>
       </div>
-
       <div id="schoolGroups" class="school-groups"></div>
       <div id="emptyState" class="panel admin-empty" hidden>Tidak ada data yang sesuai dengan filter.</div>
     </section>
   </main>
-
-  <dialog id="detailDialog" class="detail-dialog">
-    <button id="closeDetail" class="dialog-close" aria-label="Tutup">×</button>
-    <div id="detailContent"></div>
-  </dialog>
-
+  <dialog id="detailDialog" class="detail-dialog"><button id="closeDetail" class="dialog-close" aria-label="Tutup">×</button><div id="detailContent"></div></dialog>
   <div class="toast" id="adminToast" role="status"></div>
   <footer><span>Panel Administrator • Pengawas Bina</span><strong>Develoved by: Prabu26.dev</strong></footer>
 </body>
