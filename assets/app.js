@@ -229,7 +229,22 @@ function toast(message){
   window.__toastTimer = setTimeout(() => element.classList.remove("show"), 2600);
 }
 
+function resolveRole(){
+  const declared = document.body?.dataset?.initialRole;
+  if(declared === "teacher" || declared === "student") return declared;
+
+  const path = (location.pathname || "").toLowerCase();
+  if(path.endsWith("/guru.html") || path.endsWith("guru.html")) return "teacher";
+  if(path.endsWith("/murid.html") || path.endsWith("murid.html")) return "student";
+  return state.role;
+}
+
 function setupRole(role){
+  if(role !== "teacher" && role !== "student"){
+    toast("Jenis peserta tidak dikenali. Silakan kembali ke halaman utama.");
+    return;
+  }
+
   state.role = role;
 
   const student = role === "student";
@@ -259,7 +274,7 @@ $("#identityBack").addEventListener("click", event => {
 $("#assessmentBack").addEventListener("click", () => showView("#identityView"));
 $("#restartBtn").addEventListener("click", () => location.reload());
 
-const initialRole = document.body.dataset.initialRole;
+const initialRole = resolveRole();
 if(initialRole === "teacher" || initialRole === "student"){
   setupRole(initialRole);
 }
@@ -267,37 +282,60 @@ if(initialRole === "teacher" || initialRole === "student"){
 $("#identityForm").addEventListener("submit", event => {
   event.preventDefault();
 
-  const rawName = $("#participantName").value;
-  const rawSchool = $("#schoolName").value;
-  const grade = Number($("#gradeSelect").value);
+  try{
+    state.role = resolveRole();
 
-  if(!rawName.trim() || !rawSchool.trim()){
-    toast("Nama dan sekolah wajib diisi.");
-    return;
+    if(state.role !== "teacher" && state.role !== "student"){
+      throw new Error("Jenis peserta belum dipilih.");
+    }
+
+    const rawName = $("#participantName").value;
+    const rawSchool = $("#schoolName").value;
+    const grade = Number($("#gradeSelect").value);
+
+    if(!rawName.trim() || !rawSchool.trim()){
+      toast("Nama dan sekolah wajib diisi.");
+      return;
+    }
+
+    if(state.role === "student" && !grade){
+      toast("Silakan pilih kelas murid.");
+      return;
+    }
+
+    state.name = normalizePersonName(rawName);
+    state.schoolRaw = rawSchool.trim();
+    state.schoolNormalized = normalizeSchool(rawSchool);
+    state.grade = state.role === "student" ? grade : null;
+    state.phase = state.role === "student" ? getPhase(grade) : null;
+
+    const instrument = state.role === "teacher"
+      ? {questions:teacherQuestions}
+      : studentInstruments[state.phase];
+
+    if(!instrument || !Array.isArray(instrument.questions) || instrument.questions.length === 0){
+      throw new Error("Instrumen asesmen tidak ditemukan.");
+    }
+
+    state.questions = [...instrument.questions];
+    state.answers = Array(state.questions.length).fill(null);
+    state.mobileIndex = 0;
+    state.clientSubmissionId = makeId();
+    state.lastPayload = null;
+    state.lastResult = null;
+    state.reportCreatedAt = null;
+
+    renderAssessment();
+
+    if($("#questionsContainer").children.length !== state.questions.length){
+      throw new Error("Pertanyaan gagal dimuat dengan lengkap.");
+    }
+
+    showView("#assessmentView");
+  }catch(error){
+    console.error("Gagal memulai asesmen:",error);
+    toast("Pertanyaan gagal dimuat. Muat ulang halaman lalu coba kembali.");
   }
-
-  if(state.role === "student" && !grade){
-    toast("Silakan pilih kelas murid.");
-    return;
-  }
-
-  state.name = normalizePersonName(rawName);
-  state.schoolRaw = rawSchool.trim();
-  state.schoolNormalized = normalizeSchool(rawSchool);
-  state.grade = state.role === "student" ? grade : null;
-  state.phase = state.role === "student" ? getPhase(grade) : null;
-  state.questions = state.role === "teacher"
-    ? teacherQuestions
-    : studentInstruments[state.phase].questions;
-  state.answers = Array(state.questions.length).fill(null);
-  state.mobileIndex = 0;
-  state.clientSubmissionId = makeId();
-  state.lastPayload = null;
-  state.lastResult = null;
-  state.reportCreatedAt = null;
-
-  renderAssessment();
-  showView("#assessmentView");
 });
 
 function getAnswerLabels(){
@@ -307,6 +345,10 @@ function getAnswerLabels(){
 }
 
 function renderAssessment(){
+  if(!Array.isArray(state.questions) || state.questions.length === 0){
+    throw new Error("Tidak ada pertanyaan untuk dirender.");
+  }
+
   const student = state.role === "student";
   $("#participantBadge").textContent = student
     ? `MURID MI • FASE ${state.phase} • ${state.questions.length} SOAL`
@@ -316,6 +358,7 @@ function renderAssessment(){
 
   const container = $("#questionsContainer");
   const labels = getAnswerLabels();
+  const fragment = document.createDocumentFragment();
   container.innerHTML = "";
 
   state.questions.forEach((question,index) => {
@@ -348,7 +391,7 @@ function renderAssessment(){
       </div>
     `;
 
-    container.appendChild(card);
+    fragment.appendChild(card);
 
     card.querySelectorAll('input[type="radio"]').forEach(input => {
       input.addEventListener("change", () => {
@@ -374,6 +417,7 @@ function renderAssessment(){
     });
   });
 
+  container.appendChild(fragment);
   updateProgress();
   setMobileQuestion(0);
 }
@@ -445,6 +489,10 @@ function studentCategory(score){
 }
 
 function calculateResult(){
+  if(!Array.isArray(state.answers) || state.answers.length !== state.questions.length){
+    throw new Error("Jawaban belum siap dihitung.");
+  }
+
   let rawScore = 0;
   let rawMaxScore = 0;
   let category;
@@ -471,7 +519,7 @@ function calculateResult(){
     category = studentCategory(Math.round((rawScore * 100) / rawMaxScore));
   }
 
-  const score = Math.round((rawScore * 100) / rawMaxScore);
+  const score = Math.max(0,Math.min(100,Math.round((rawScore * 100) / rawMaxScore)));
 
   return {
     score,
@@ -638,6 +686,7 @@ $("#downloadPdfBtn").addEventListener("click", () => {
   }
 
   try{
+    if(!window.PolaPikirReport?.download) throw new Error("Generator PDF belum siap.");
     window.PolaPikirReport.download(data);
   }catch(error){
     console.error(error);
@@ -670,3 +719,6 @@ window.addEventListener("pageshow",() => {
     window.scrollTo({top:0,left:0,behavior:"auto"});
   }
 });
+
+
+document.documentElement.dataset.appReady = "true";

@@ -718,3 +718,15 @@ footer strong{font-weight:650;color:#666b66}
   ::view-transition-old(root),
   ::view-transition-new(root){animation:none!important}
 }
+
+
+/* Assessment rendering hardening */
+#questionsContainer{min-height:1px}
+.question-card{content-visibility:auto;contain-intrinsic-size:120px}
+@media(max-width:840px){
+  .question-card.mobile-active{
+    display:grid!important;
+    opacity:1;
+    visibility:visible
+  }
+}
