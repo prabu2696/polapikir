@@ -242,7 +242,7 @@ function setupRole(role){
   showView("#identityView");
 }
 
-$("[data-role]").forEach(button => {
+document.querySelectorAll("[data-role]").forEach(button => {
   button.addEventListener("click", event => {
     event.preventDefault();
     setupRole(button.dataset.role);
