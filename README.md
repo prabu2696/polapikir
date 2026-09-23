@@ -44,9 +44,10 @@ Pada desktop/laptop, pilihan jawaban tampil sebagai radio button. Pada smartphon
 3. Sistem menentukan fase murid otomatis dari kelas.
 4. Peserta menjawab seluruh pernyataan.
 5. Saat menekan **Cek Nilai**, hasil langsung dihitung dan tampil di perangkat.
-6. Pada saat yang sama jawaban dikirim ke Supabase.
-7. Supabase menghitung ulang skor di server berdasarkan versi instrumen. Data lama v3 tetap memakai rubrik lamanya; jawaban baru memakai v4.
-8. Admin dapat melihat data berdasarkan sekolah, jenis peserta, dan fase.
+6. Firebase Authentication membuat sesi anonymous peserta tanpa formulir login. Jawaban asli dikirim ke Cloud Firestore.
+7. Status tersimpan muncul setelah konfirmasi server. Kirim ulang memakai ID yang sama dan memeriksa jawaban tersimpan agar tidak membuat duplikat.
+   Pengiriman yang tertunda disimpan di sessionStorage dan dicoba kembali saat koneksi kembali atau halaman dimuat ulang pada tab yang sama. Menutup tab dapat menghapus salinan yang belum terkirim.
+8. Dashboard admin berlangganan perubahan Firestore. Skor, enam mindset, dan PDF dihitung kembali dari jawaban asli memakai rubrik v4, bukan dari skor kiriman peserta.
 
 ## Normalisasi data
 
@@ -54,15 +55,19 @@ Pada desktop/laptop, pilihan jawaban tampil sebagai radio button. Pada smartphon
 - Nama sekolah dirapikan untuk variasi spasi dan tanda baca.
 - Contoh variasi seperti `RA-Alhidayah` dan `RA Alhidayah` dapat masuk ke nama normalisasi yang sama.
 
-## Supabase
+## Firebase
 
-Konfigurasi project dan publishable key berada di `config.js`.
+Konfigurasi web proyek `polapikir-mi`, email admin `cailembursingkur@gmail.com`, dan UID admin berada di `config.js`. Password tidak disimpan di repositori.
 
-Agar backend aktif, jalankan `supabase/schema.sql` di SQL Editor project Supabase dan buat akun Authentication admin dengan email internal yang ditetapkan dalam konfigurasi. Terapkan pembaruan SQL **sebelum** menerbitkan klien v4; trigger lama mengabaikan rubrik v4.
+Aktifkan provider Email/Password dan Anonymous di Firebase Authentication. Tambahkan `prabu2696.github.io` serta `localhost` untuk pengujian ke Authorized domains. Database Firestore menggunakan `(default)`. Publikasikan isi `firestore.rules` melalui Console, atau jalankan `firebase deploy --only firestore --project polapikir-mi` dengan Firebase CLI yang sudah login sebagai pengelola proyek.
 
-Login antarmuka admin tetap menggunakan username, bukan email internal.
+Login memakai email admin. Firebase memverifikasi password; akses data dibatasi oleh UID pada Rules. Sesi admin bertahan selama tab terbuka dan diperbarui oleh Firebase SDK. Sesi peserta terpisah dari sesi admin.
 
-**Jangan memasukkan service-role key ke repository atau browser.**
+Koleksi `submissions` menyimpan `owner_uid`, `instrument_version`, `participant_type`, `participant_name`, `school_raw`, `grade`, `phase`, `answers` (daftar indeks pilihan), serta `created_at` (server timestamp). Peserta tidak dapat mengubah hasil atau membaca peserta lain. Admin dapat membaca seluruh hasil. Perhitungan skor berjalan di aplikasi; jawaban dan jumlah soal divalidasi oleh Rules.
+
+Tidak diperlukan Analytics, Storage, atau Cloud Functions untuk alur ini. Firebase SDK modular versi 12.19.0 dimuat dari CDN resmi. Jangan memasukkan service account/private key ke browser.
+
+Pengujian lokal: `node tests/server.mjs`, lalu buka `http://127.0.0.1:4173`. Pratinjau memakai proyek Firebase yang dikonfigurasi, sehingga pengiriman dari halaman ini adalah data sungguhan. Uji perhitungan/PDF: `node tests/regression.cjs`; uji dokumen: `node tests/firestore-data.cjs`.
 
 ## Laporan PDF
 

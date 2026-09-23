@@ -1,6 +1,6 @@
 # Draf Instrumen Profil Pola Pikir MI (v4)
 
-Instrumen ini menyajikan enam kecenderungan reflektif untuk Guru MI dan Murid MI. Seluruh pernyataan merupakan draf baru. Naskah pertanyaan, urutan, aspek, pilihan jawaban, dan arah skor berada di `assets/instruments.js` sebagai satu sumber untuk antarmuka dan laporan. Trigger di `supabase/schema.sql` menghitung ulang skor jawaban di server berdasarkan versi instrumen.
+Instrumen ini menyajikan enam kecenderungan reflektif untuk Guru MI dan Murid MI. Seluruh pernyataan merupakan draf baru. Naskah pertanyaan, urutan, aspek, pilihan jawaban, dan arah skor berada di `assets/instruments.js` sebagai satu sumber untuk antarmuka dan laporan. Firestore menyimpan jawaban asli. Dashboard menghitung ulang skor dari jawaban tersebut memakai modul instrumen yang sama.
 
 | Aspek | Perilaku yang dicermati |
 | --- | --- |
@@ -26,4 +26,4 @@ Persentase aspek = `jumlah skor aspek / (jumlah soal aspek × skor item maksimum
 
 Instrumen ini belum divalidasi secara psikometrik. Persentase aspek tidak boleh dibaca sebagai diagnosis, sifat permanen, atau peringkat antarpeserta. Gunakan hasil bersama percakapan, pengamatan, dan konteks belajar peserta. Catatan ini penting terutama untuk murid kecil dan aspek yang diwakili sedikit pernyataan.
 
-Data sebelum v4 tetap bertanda `2026.09-v3` dan dihitung dengan rubrik lamanya saat laporan historis dibuka. Sebelum menerbitkan klien v4, terapkan `supabase/schema.sql` di proyek Supabase agar trigger menerima versi v4 dan menghitung skor yang sesuai.
+Generator PDF tetap dapat membaca laporan historis v3 dengan rubrik lamanya. Pengiriman Firestore hanya menerima versi `2026.09-v4`, dengan validasi fase, jumlah jawaban, dan pilihan di `firestore.rules`. Skor tidak disimpan dari browser peserta; dashboard menurunkannya kembali dari jawaban asli.

@@ -1,7 +1,8 @@
 const CFG = window.APP_CONFIG || {};
 const $ = selector => document.querySelector(selector);
 
-let sessionToken = null;
+let unsubscribe = null;
+let subscriptionVersion = 0;
 let rows = [];
 
 function adminToast(message){
@@ -37,75 +38,12 @@ function switchAdmin(id){
   }
 }
 
-function baseUrl(){
-  return (CFG.supabaseUrl || "").replace(/\/$/,"");
-}
-
 function configured(){
-  return Boolean(
-    CFG.supabaseUrl &&
-    CFG.supabaseAnonKey &&
-    CFG.adminUsername &&
-    CFG.adminLoginEmail
-  );
-}
-
-async function api(path,options={}){
-  const headers = {
-    apikey:CFG.supabaseAnonKey,
-    "Content-Type":"application/json",
-    ...(options.headers || {})
-  };
-
-  headers.Authorization = "Bearer " + (sessionToken || CFG.supabaseAnonKey);
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(),12000);
-
-  try{
-    const response = await fetch(baseUrl() + path,{
-      ...options,
-      headers,
-      signal:options.signal || controller.signal
-    });
-
-    if(!response.ok){
-      let body = "";
-      try{ body = await response.text(); }catch{}
-      const error = new Error(body || "Request gagal.");
-      error.status = response.status;
-      throw error;
-    }
-
-    if(response.status === 204) return null;
-    return response.json();
-  }finally{
-    clearTimeout(timer);
-  }
+  return Boolean(window.PolaPikirBackend?.configured() && CFG.adminLoginEmail);
 }
 
 async function restoreSession(){
-  const saved = sessionStorage.getItem("pp_admin_session");
-  if(!saved) return false;
-
-  try{
-    const session = JSON.parse(saved);
-
-    if(
-      !session.access_token ||
-      !session.expires_at ||
-      Date.now() / 1000 >= session.expires_at
-    ){
-      sessionStorage.removeItem("pp_admin_session");
-      return false;
-    }
-
-    sessionToken = session.access_token;
-    return true;
-  }catch{
-    sessionStorage.removeItem("pp_admin_session");
-    return false;
-  }
+  return window.PolaPikirBackend.restore();
 }
 
 const passwordInput = $("#adminPassword");
@@ -128,15 +66,15 @@ $("#loginForm").addEventListener("submit",async event => {
   $("#loginError").hidden = true;
 
   if(!configured()){
-    adminToast("Konfigurasi Supabase belum lengkap.");
+    adminToast("Konfigurasi Firebase belum lengkap.");
     return;
   }
 
-  const username = $("#adminUsername").value.trim().toLowerCase();
+  const email = $("#adminEmail").value.trim().toLowerCase();
 
-  if(username !== String(CFG.adminUsername).toLowerCase()){
+  if(email !== String(CFG.adminLoginEmail).toLowerCase()){
     $("#loginError").hidden = false;
-    $("#loginError").textContent = "Username atau password tidak valid.";
+    $("#loginError").textContent = "Email atau password tidak valid.";
     return;
   }
 
@@ -146,22 +84,7 @@ $("#loginForm").addEventListener("submit",async event => {
   button.textContent = "Memeriksa…";
 
   try{
-    const data = await api("/auth/v1/token?grant_type=password",{
-      method:"POST",
-      body:JSON.stringify({
-        email:CFG.adminLoginEmail,
-        password:passwordInput.value
-      })
-    });
-
-    sessionToken = data.access_token;
-
-    const expiresAt = Math.floor(Date.now() / 1000) + (data.expires_in || 3600);
-
-    sessionStorage.setItem("pp_admin_session",JSON.stringify({
-      access_token:sessionToken,
-      expires_at:expiresAt
-    }));
+    await window.PolaPikirBackend.login(passwordInput.value);
 
     passwordInput.value = "";
     passwordInput.type = "password";
@@ -173,8 +96,8 @@ $("#loginForm").addEventListener("submit",async event => {
   }catch(error){
     console.error(error);
     $("#loginError").hidden = false;
-    $("#loginError").textContent = error.status === 400 || error.status === 401
-      ? "Username atau password tidak valid. Periksa kembali lalu coba lagi."
+    $("#loginError").textContent = ["auth/invalid-credential","auth/wrong-password","auth/user-not-found","auth/unauthorized-admin"].includes(error.code)
+      ? "Email atau password tidak valid. Periksa kembali lalu coba lagi."
       : "Belum dapat terhubung. Periksa koneksi lalu coba lagi.";
   }finally{
     button.disabled = false;
@@ -183,22 +106,25 @@ $("#loginForm").addEventListener("submit",async event => {
 });
 
 $("#logoutBtn").addEventListener("click",async () => {
-  try{
-    if(sessionToken) await api("/auth/v1/logout",{method:"POST"});
-  }catch{}
-
-  sessionToken = null;
+  ++subscriptionVersion;
+  unsubscribe?.();
+  unsubscribe = null;
   rows = [];
-  sessionStorage.removeItem("pp_admin_session");
+  render();
+  $("#detailDialog").close();
+  $("#detailContent").replaceChildren();
   $("#logoutBtn").hidden = true;
   switchAdmin("#loginView");
+  try{
+    await window.PolaPikirBackend.logout();
+  }catch{ adminToast("Gagal mengakhiri sesi. Tutup tab admin dan coba kembali."); }
 });
 
 $("#refreshBtn").addEventListener("click",async () => {
   const button = $("#refreshBtn");
   button.disabled = true;
   try{
-    if(await loadRows()) adminToast("Data sudah diperbarui.");
+    if(await loadRows()) adminToast("Menunggu pembaruan dari server…");
   }finally{
     button.disabled = false;
   }
@@ -235,54 +161,42 @@ async function openDashboard(){
 }
 
 async function loadRows(){
+  const version = ++subscriptionVersion;
+  unsubscribe?.();
+  unsubscribe = null;
   const status = $("#dataStatus");
   status.hidden = false;
   status.className = "data-status";
   status.textContent = "Memuat hasil asesmen…";
   $("#schoolGroups").setAttribute("aria-busy", "true");
   $("#emptyState").hidden = true;
-  try{
-    const pageSize = 500;
-    const all = [];
-    let offset = 0;
-
-    while(true){
-      const select = [
-        "id","client_submission_id","instrument_version","participant_type",
-        "participant_name","school_raw","school_normalized","grade","phase",
-        "answers","raw_score","raw_max_score","score","max_score","category","created_at"
-      ].join(",");
-
-      const batch = await api(
-        `/rest/v1/submissions?select=${encodeURIComponent(select)}&order=created_at.desc&limit=${pageSize}&offset=${offset}`
-      );
-
-      all.push(...batch);
-      if(batch.length < pageSize) break;
-      offset += pageSize;
-    }
-
-    rows = all;
-    render();
-    status.hidden = true;
-    return true;
-  }catch(error){
-    console.error(error);
-    if(error?.status === 401){
-      sessionToken = null;
-      sessionStorage.removeItem("pp_admin_session");
-      $("#logoutBtn").hidden = true;
-      switchAdmin("#loginView");
-      adminToast("Sesi admin berakhir. Silakan masuk kembali.");
-      return;
-    }
+  const onError = error => {
+    if(version !== subscriptionVersion) return;
+    console.error(error.code || error.message);
+    status.hidden = false;
     status.className = "data-status error";
     status.textContent = rows.length
       ? "Pembaruan gagal. Data sebelumnya masih tampil. Tekan Muat ulang untuk mencoba lagi."
       : "Hasil belum dapat dimuat. Periksa koneksi, lalu tekan Muat ulang.";
-    return false;
-  }finally{
     $("#schoolGroups").setAttribute("aria-busy", "false");
+  };
+  let timer = setTimeout(() => onError(new Error("Koneksi belum dikonfirmasi server.")), 15000);
+  try{
+    const stop = await window.PolaPikirBackend.subscribe(data => {
+      if(version !== subscriptionVersion) return;
+      clearTimeout(timer);
+      rows = data;
+      render();
+      status.hidden = true;
+      $("#schoolGroups").setAttribute("aria-busy", "false");
+    }, error => { clearTimeout(timer); onError(error); });
+    if(version !== subscriptionVersion){ stop(); clearTimeout(timer); return false; }
+    unsubscribe = () => { clearTimeout(timer); stop(); };
+    return true;
+  }catch(error){
+    clearTimeout(timer);
+    onError(error);
+    return false;
   }
 }
 
@@ -485,12 +399,15 @@ function escapeHtml(value){
 (async () => {
   if(!configured()){
     $("#adminConfigWarning").hidden = false;
-    $("#adminConfigWarning").textContent = "Konfigurasi Supabase belum lengkap.";
+    $("#adminConfigWarning").textContent = "Konfigurasi Firebase belum lengkap.";
     return;
   }
 
-  if(await restoreSession()){
-    await openDashboard();
+  try{
+    if(await restoreSession()) await openDashboard();
+  }catch{
+    $("#loginError").hidden = false;
+    $("#loginError").textContent = "Koneksi login belum tersedia. Periksa koneksi lalu coba masuk.";
   }
 })();
 

@@ -92,7 +92,7 @@ function makeId(){
 }
 
 function configured(){
-  return Boolean(APP_CONFIG.supabaseUrl && APP_CONFIG.supabaseAnonKey);
+  return window.PolaPikirBackend?.configured();
 }
 
 function toast(message){
@@ -353,45 +353,10 @@ function makePayload(){
   };
 }
 
-async function saveSubmission(payload,attempt=0){
+async function saveSubmission(payload){
   if(!configured()) throw new Error("Backend belum dikonfigurasi.");
 
-  const endpoint = APP_CONFIG.supabaseUrl.replace(/\/$/,"")
-    + "/rest/v1/submissions?on_conflict=client_submission_id";
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(),10000);
-
-  try{
-    const response = await fetch(endpoint,{
-      method:"POST",
-      signal:controller.signal,
-      headers:{
-        apikey:APP_CONFIG.supabaseAnonKey,
-        Authorization:"Bearer " + APP_CONFIG.supabaseAnonKey,
-        "Content-Type":"application/json",
-        Prefer:"resolution=ignore-duplicates,return=minimal"
-      },
-      body:JSON.stringify(payload)
-    });
-
-    if(!response.ok){
-      const detail = await response.text().catch(() => "");
-      if(response.status >= 500 && attempt < 1){
-        await new Promise(resolve => setTimeout(resolve,450));
-        return saveSubmission(payload,attempt + 1);
-      }
-      throw new Error(detail || "Gagal menyimpan data.");
-    }
-  }catch(error){
-    if(attempt < 1 && error?.name !== "AbortError"){
-      await new Promise(resolve => setTimeout(resolve,450));
-      return saveSubmission(payload,attempt + 1);
-    }
-    throw error;
-  }finally{
-    clearTimeout(timer);
-  }
+  return window.PolaPikirBackend.save(payload);
 }
 
 function setSaveState(type,message,retry=false){
@@ -407,13 +372,16 @@ function setSaveState(type,message,retry=false){
 }
 
 async function sendToAdmin(payload){
+  rememberPending(payload);
   setSaveState("pending","Mengirim hasil ke dashboard admin…");
 
   try{
     await saveSubmission(payload);
-    setSaveState("ok","Hasil tersimpan dan dapat dilihat oleh pengawas.");
+    forgetPending(payload.client_submission_id);
+    if(state.lastPayload === payload) setSaveState("ok","Hasil tersimpan dan dapat dilihat oleh pengawas.");
   }catch(error){
     console.error(error);
+    if(state.lastPayload !== payload) return;
     setSaveState(
       "warn",
       "Hasil sudah dihitung, tetapi belum berhasil dikirim ke admin.",
@@ -421,6 +389,35 @@ async function sendToAdmin(payload){
     );
   }
 }
+
+const pendingPrefix = "polapikir-pending:";
+function rememberPending(payload){
+  try{ sessionStorage.setItem(pendingPrefix + payload.client_submission_id, JSON.stringify(payload)); }
+  catch{ console.warn("Salinan pengiriman tidak dapat disimpan di tab ini."); }
+}
+function forgetPending(id){
+  try{ sessionStorage.removeItem(pendingPrefix + id); }catch{}
+}
+async function retryPending(){
+  let keys;
+  try{ keys = Object.keys(sessionStorage).filter(key => key.startsWith(pendingPrefix)); }
+  catch{ return; }
+  for(const key of keys){
+    try{
+      const payload = JSON.parse(sessionStorage.getItem(key));
+      if(!payload?.client_submission_id) continue;
+      if(state.lastPayload?.client_submission_id === payload.client_submission_id){
+        await sendToAdmin(state.lastPayload);
+      }else{
+        await saveSubmission(payload);
+        forgetPending(payload.client_submission_id);
+        toast("Hasil sebelumnya berhasil dikirim ke admin.");
+      }
+    }catch{ /* Keep the pending result for the next connection attempt. */ }
+  }
+}
+window.addEventListener("online", retryPending);
+retryPending();
 
 async function retryLastSave(){
   if(state.lastPayload) await sendToAdmin(state.lastPayload);

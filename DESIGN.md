@@ -323,7 +323,7 @@ Murid:
 Flow:
 Identitas → Asesmen → semua jawaban lengkap → Cek Nilai → hasil 0–100 → Unduh PDF.
 
-Perubahan UI tidak boleh memutus jumlah soal, scoring, penyimpanan Supabase, admin, atau PDF.
+Perubahan UI tidak boleh memutus jumlah soal, scoring, penyimpanan Firestore, admin, atau PDF.
 
 ## Delivery Checklist
 

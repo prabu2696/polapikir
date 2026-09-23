@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.uid == 't8Fe8gigk0VHuJ1V84ohW3iHR4I2'; }
+    function validInstrument(d) {
+      return (d.participant_type == 'teacher' && d.grade == null && d.phase == null
+          && d.answers.size() == 20 && d.answers.toSet().hasOnly([0, 1, 2, 3]))
+        || (d.participant_type == 'student' && d.grade is int && (
+          (d.grade in [1, 2] && d.phase == 'A' && d.answers.size() == 10 && d.answers.toSet().hasOnly([0, 1, 2]))
+          || (d.grade in [3, 4] && d.phase == 'B' && d.answers.size() == 15 && d.answers.toSet().hasOnly([0, 1, 2, 3]))
+          || (d.grade in [5, 6] && d.phase == 'C' && d.answers.size() == 20 && d.answers.toSet().hasOnly([0, 1, 2, 3]))
+        ));
+    }
+    function validSubmission() {
+      let d = request.resource.data;
+      let fields = ['owner_uid', 'instrument_version', 'participant_type', 'participant_name', 'school_raw', 'grade', 'phase', 'answers', 'created_at'];
+      return d.keys().hasAll(fields) && d.keys().hasOnly(fields)
+        && d.owner_uid == request.auth.uid && d.instrument_version == '2026.09-v4'
+        && d.participant_name is string && d.participant_name.size() >= 2 && d.participant_name.size() <= 100
+        && d.school_raw is string && d.school_raw.size() >= 2 && d.school_raw.size() <= 150
+        && d.answers is list && d.created_at is timestamp && d.created_at == request.time
+        && validInstrument(d);
+    }
+    match /submissions/{submissionId} {
+      allow create: if signedIn() && validSubmission();
+      allow get: if isAdmin() || (signedIn() && resource.data.owner_uid == request.auth.uid);
+      allow list, delete: if isAdmin();
+      allow update: if false;
+    }
+  }
+}

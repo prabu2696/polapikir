@@ -12,8 +12,6 @@ context.window.jspdf = {jsPDF};
 vm.runInContext(fs.readFileSync(path.join(root,'assets/report.js'),'utf8'),context);
 const registry = context.window.PolaPikirInstruments;
 const report = context.window.PolaPikirReport;
-const sql = fs.readFileSync(path.join(root,'supabase/schema.sql'),'utf8');
-const v4 = sql.slice(sql.indexOf("if new.instrument_version = '2026.09-v4' then",sql.indexOf('for i in')),sql.indexOf("elsif new.participant_type = 'teacher'",sql.indexOf('for i in')));
 const inverse = [[9,14],[],[8,15],[14]];
 const legacyInverse = [[1,4,7,8,11,12,14,16,17,20],[4,7],[4,8,12],[6,11,14,18]];
 const output = path.join(root,'tests/results');
@@ -28,7 +26,6 @@ for(const [index,phase] of [null,'A','B','C'].entries()){
   assert.equal(report.itemWeight(type,phase),100/count);
   assert.deepEqual([...new Set(Array.from(instrument.items,item=>item.dimension))].sort(),Array.from(registry.dimensions,item=>item.id).sort());
   assert.deepEqual(Array.from(instrument.items).flatMap((item,i)=>item.reverse ? [i+1]:[]),inverse[index]);
-  for(const q of inverse[index]) assert.match(v4,new RegExp(`\\b${q}\\b`));
   for(let q=0;q<count;q++) for(let answer=0;answer<instrument.answers.length;answer++){
     const item = instrument.items[q];
     const expected = item.reverse ? answer : instrument.answers.length-1-answer;
