@@ -7,6 +7,6 @@ window.APP_CONFIG = {
     messagingSenderId: "540677219266",
     appId: "1:540677219266:web:6df40bb1a297a224452c5b"
   },
-  adminLoginEmail: "cailembursingkur@gmail.com",
-  adminUid: "t8Fe8gigk0VHuJ1V84ohW3iHR4I2"
+  adminLoginEmail: "kangprabu2696@gmail.com",
+  adminUid: "uCnVI3TLrITW5Xo1TXXaf8XhuD82"
 };
