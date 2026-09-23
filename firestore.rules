@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function isAdmin() { return signedIn() && request.auth.uid == 't8Fe8gigk0VHuJ1V84ohW3iHR4I2'; }
+    function isAdmin() { return signedIn() && request.auth.uid == 'uCnVI3TLrITW5Xo1TXXaf8XhuD82'; }
     function validInstrument(d) {
       return (d.participant_type == 'teacher' && d.grade == null && d.phase == null
           && d.answers.size() == 20 && d.answers.toSet().hasOnly([0, 1, 2, 3]))
